@@ -7,19 +7,19 @@ from traits.api import HasPrivateTraits, Enum, Property
 SQRT3 = np.sqrt(3)
 
 
-#class Planet_Meta(type(HasPrivateTraits), type(MapUnit)):
-#  pass
-#
-#class HasPrivateTraits(MapUnit):
-#  pass
+class Planet_Meta(type(HasPrivateTraits), type(MapUnit)):
+  pass
+
+class HasPrivateTraits(MapUnit):
+  pass
 
 
 class Planet(MapUnit):
-  #__metaclass__ = Planet_Meta
+  __metaclass__ = Planet_Meta
 
-  #planet_type = Enum('gaia', 'volcanic', 'oxide', 'terra', 'ice', 'titanium',
-  #                   'swamp', 'desert', 'transdim')
-  #color = Property(depends_on = 'planet_type')
+  planet_type = Enum('gaia', 'volcanic', 'oxide', 'terra', 'ice', 'titanium',
+                     'swamp', 'desert', 'transdim')
+  color = Property(depends_on = 'planet_type')
 
   def __init__(self, grid, planet_type, *args, **kwargs):
     super().__init__(grid, *args, **kwargs)
@@ -64,8 +64,6 @@ if __name__ == '__main__':
   m.units[(3, 6)] = Planet(m, 'ice')
   m.units[(13, 3)] = Planet(m, 'gaia')
 
-  print(vp._get_color())
-  #print(vp.position)
   print(m.ascii())
 
 

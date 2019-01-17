@@ -3,10 +3,10 @@ import sys
 import pygame
 
 import numpy as np
-from traits.api import HasPrivateTraits, Enum, Property, Instance, List, Int
-SQRT3 = np.sqrt(3)
+from traits.api import (HasPrivateTraits, Enum, Property, Instance, List, Int, 
+                        Bool)
 
-from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP, BUILDING_COLOR_MAP
+from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP, COMPONENT_COLOR_MAP
 
 
 class MapUnit_Meta(type(HasPrivateTraits), type(MapUnit)):
@@ -33,7 +33,7 @@ class Planet(MapUnit):
   def paint(self, surface):
     radius = surface.get_width() // 2
     pygame.draw.circle(surface, self._get_planet_color(), 
-                       (radius, int(SQRT3 / 2 * radius)),
+                       (radius, int(np.sqrt(3) / 2 * radius)),
                        int(radius - radius * .3) )
 
 #TODO someday, maybe make the Buildings 3D models of real game pieces
@@ -49,32 +49,34 @@ class Planet(MapUnit):
 #
 #  def paint(self, surface):
 #    radius = surface.get_width() // 2
-#    #surface.blit(self.sf, (radius, int(SQRT3 / 2 * radius)))
-#    #self.sf.blit(surface, (radius, int(SQRT3 / 2 * radius)))
+#    #surface.blit(self.sf, (radius, int(np.sqrt(3) / 2 * radius)))
+#    #self.sf.blit(surface, (radius, int(np.sqrt(3) / 2 * radius)))
 #
 #    x, y = self.position
 #
 #    surface.blit(self.sf, (x+radius//2, 
-#                           y + (SQRT3 / 2 * radius)//2 ) )
+#                           y + (np.sqrt(3) / 2 * radius)//2 ) )
 
 class Building(Planet):
   building_type = Enum('mine', 'trading post', 'planetary institute',
-                       'research lab', 'academy')
+                       'research lab', 'academy', 'lost planet')
 
   building_color = Enum('orange', 'red', 'blue', 'white', 'gray',
                         'brown', 'yellow')
   
+  lantid_share = Bool(False)
 
   def __init__(self, grid, planet_type, building_color, building_type='mine', 
-               *args, **kwargs):
+               lantid_share=False, *args, **kwargs):
     super().__init__(grid, planet_type, *args, **kwargs)
     self.building_color = building_color
     self.building_type = building_type
+    self.lantid_share = lantid_share
 
   def paint(self, surface):
     radius = surface.get_width() // 2
     pygame.draw.circle(surface, self._get_planet_color(),
-                       (radius, int(SQRT3 / 2 * radius)),
+                       (radius, int(np.sqrt(3) / 2 * radius)),
                        int(radius - radius * .3) )
 
     w, h = surface.get_size()
@@ -84,22 +86,252 @@ class Building(Planet):
     top = h*7//20
     bottom = h*13//20
 
-    building_rect = surface.subsurface( pygame.Rect( left, top, right-left, bottom-top ))
+    building_rect = surface.subsurface( pygame.Rect( left, top, right-left, 
+                                                     bottom-top ))
+    bw, bh = building_rect.get_size()
       
 
     if self.building_type == 'mine':
-      bw, bh = building_rect.get_size()
-      mine_top = int(bh * .8)
-      mine_chimney_left = int(bw * .75)
-      mine_chimney_right = int(bw * .88)
-      points = ((0,0), (0, mine_top), (mine_chimney_left, mine_top),
-                (mine_chimney_left, bh), (mine_chimney_right, bh),
-                (mine_chimney_right, mine_top), (bw, mine_top), (bw, 0))
+      outline_h = int(bh * .35)
 
-      pygame.draw.polygon(building_rect, 
-                          BUILDING_COLOR_MAP[self.building_color], points)
+      mine_h = int(bh * .4)
+
+      chimney_l = int(bw * .7)
+      chimney_r= int(bw * .8)
+
+      outline_cl = int(bw * .65)
+      outline_cr = int(bw * .85)
+
+      mine_r = int(bw * .95)
+      mine_l = int(bw * .05)
+
+      mine_t = int(bh * .05)
+      mine_b = int(bh * .95)
+
+      outline_points = ((0, bh), (0, outline_h), 
+                        (outline_cl, outline_h),
+                        (outline_cl, 0), (outline_cr, 0),
+                        (outline_cr, outline_h), (bw, outline_h), 
+                        (bw, bh))
+
+      building_points = ((mine_l, mine_b), (mine_l, mine_h), 
+                         (chimney_l, mine_h), 
+                         (chimney_l, mine_t), (chimney_r, mine_t), 
+                         (chimney_r, mine_h), (mine_r, mine_h), 
+                         (mine_r, mine_b))
+
+
+    elif self.building_type == 'trading post':
+      outline_h = int(bh * .35)
+
+      post_h = int(bh * .4) 
+      
+      chimney_l = int(bw * .45)
+      chimney_r = int(bw * .55)
+
+      outline_cl = int(bw * .4)
+      outline_cr = int(bw * .6)
+
+      chimney_h = int(bh * .25)
+
+      outline_ch = int(bh * .2)
+
+      story_w = int(bw * .75)
+      outline_sw = int(bw * .7)
+
+      post_l = int(bw * .05)
+      post_r = int(bw * .95)
+      post_t = int(bh * .05)
+      post_b = int(bh * .95)
+
+      outline_points = ((0, bh), (0, outline_h), 
+                        (outline_cl, outline_h),
+                        (outline_cl, outline_ch), (outline_cr, outline_ch),
+                        (outline_cr, outline_h), (outline_sw, outline_h),
+                        (outline_sw, 0), (bw, 0), (bw, bh))
+
+      building_points = ((post_l, post_b), (post_l, post_h),
+                         (chimney_l, post_h),
+                         (chimney_l, chimney_h), (chimney_r, chimney_h),
+                         (chimney_r, post_h), (story_w, post_h),
+                         (story_w, post_t), (post_r, post_t), (post_r, post_b))
+
+    elif self.building_type == 'planetary institute':
+      pi_h = int(bh * .5)
+      story_h = int(bh * .25)
+
+      story_l = int(bw * .25)
+      story_r = int(bw * .75)
+
+      mid_l = int(bw * .45)
+      mid_r = int(bw * .55)
+
+      pi_l = int(bw * .05)
+      pi_r = int(bw * .95)
+      pi_b = int(bh * .95)
+      pi_t = int(bh * .05)
+
+      outline_h = int(bh * .45)
+      outline_sh = int(bh * .2)
+
+      outline_sl = int(bw * .2)
+      outline_sr = int(bw * .8)
+      outline_ml = int(bw * .4)
+      outline_mr = int(bw * .6)
+      
+      outline_points = ((0, bh), (0, outline_h), (outline_sl, outline_h),
+                        (outline_sl, outline_sh), (outline_ml, outline_sh),
+                        (outline_ml, 0), (outline_mr, 0),
+                        (outline_mr, outline_sh), (outline_sr, outline_sh),
+                        (outline_sr, outline_h), (bw, outline_h), (bw, bh))
+
+      building_points = ((pi_l, pi_b), (pi_l, pi_h), (story_l, pi_h),
+                         (story_l, story_h), (mid_l, story_h),
+                         (mid_l, pi_t), (mid_r, pi_t),
+                         (mid_r, story_h), (story_r, story_h),
+                         (story_r, pi_h), (pi_r, pi_h), (pi_r, pi_b))
+
+    elif self.building_type == 'research lab':
+      rl_h = int(bh * .55)
+      tower_h = int(bh * .35)
+
+      tower_l = int(bw * .15)
+      story_l = int(bw * .4)
+      story_r = int(bw * .6)
+      tower_r = int(bw * .85)
+
+      outline_h = int(bh * .4)
+      outline_th = int(bh * .2)
+      outline_tl = int(bw * .2)
+      outline_sl = int(bw * .35)
+      outline_sr = int(bw * .65)
+      outline_tr = int(bw * .8)
+
+      rl_l = int(bw * .05)
+      rl_r = int(bw * .95)
+      rl_t = int(bh * .05)
+      rl_b = int(bh * .95)
+      
+      outline_points = ((0, bh), (0, rl_h), (outline_tl, outline_th),
+                        (outline_tl, outline_h), (outline_sl, 0),
+                        (outline_sr, 0), (outline_tr, outline_h),
+                        (outline_tr, outline_th), (bw, rl_h), (bw, bh))
+
+      building_points = ((rl_l, rl_b), (rl_l, rl_h), (tower_l, tower_h),
+                         (tower_l, rl_h), (story_l, rl_t),
+                         (story_r, rl_t), (tower_r, rl_h),
+                         (tower_r, tower_h), (rl_r, rl_h), (rl_r, rl_b))
+
+    elif self.building_type == 'gaiaformer':
+      g_h = int(bh * .5)
+      
+      gsl1 = int(bw * .2)
+      gsr1 = int(bw * .4)
+      gsl2 = int(bw * .6)
+      gsr2 = int(bw * .8)
+
+      outline_h = int(bh * .55)
+      outline_gsl1 = int(bw * .15)
+      outline_gsr1 = int(bw * .45)
+      outline_gsl2 = int(bw * .55)
+      outline_gsr2 = int(bw * .85)
+
+      g_l = int(bw * .05)
+      g_r = int(bw * .95)
+      g_t = int(bh * .05)
+      g_b = int(bh * .95)
+
+
+      outline_points = ((0, bh), (0, g_h), (gsr1, 0), (gsl2, 0),
+                        (bw, g_h), (bw, bh), (outline_gsr2, bh),
+                        (outline_gsr2, outline_h), (outline_gsl2, outline_h),
+                        (outline_gsl2, bh), (outline_gsr1, bh),
+                        (outline_gsr1, outline_h), (outline_gsl1, outline_h),
+                        (outline_gsl1, bh))
+
+      building_points = ((g_l, g_b), (g_l, g_h), (gsr1, g_t), (gsl2, g_t),
+                         (g_r, g_h), (g_r, g_b), (gsr2, g_b), 
+                         (gsr2, g_h), (gsl2, g_h),
+                         (gsl2, g_b), (gsr1, g_b),
+                         (gsr1, g_h), (gsl1, g_h),
+                         (gsl1, g_b))
+
+    elif self.building_type == 'academy':
+      ac_h = int(bh * .5)
+
+      outline_h = int(bh * .45)
+
+      story_l = int(bw * .25)
+      story_r = int(bw * .45)
+
+      outline_sl = int(bw * .2)
+      outline_sr = int(bw * .5)
+
+      story_w = int(bw * .7)
+      outline_sw = int(bw * .75)
+
+
+      ac_l = int(bw * .05)
+      ac_r = int(bw * .95)
+      ac_t = int(bh * .05)
+      ac_b = int(bh * .95)
+
+      outline_points = ((0, bh), (0, outline_h), (outline_sl, 0), 
+                        (outline_sr, 0),
+                        (outline_sw, outline_h), (bw, outline_h), (bw, bh))
+
+      building_points = ((ac_l, ac_b), (ac_l, ac_h), (story_l, ac_t),
+                         (story_r, ac_t),
+                         (story_w, ac_h), (ac_r, ac_h), (ac_r, ac_b))
+
     else:
       raise NotImplementedError
+
+    pygame.draw.polygon(building_rect, pygame.Color('black'), outline_points)
+    pygame.draw.polygon(building_rect, 
+                        COMPONENT_COLOR_MAP[self.building_color], 
+                        building_points)
+
+    if self.lantid_share:
+      lantid_b = h*4//5
+      lantid_l = w*7//20
+      lantid_r = w*13//20
+
+      lantid_rect = surface.subsurface( pygame.Rect( lantid_l, bottom,
+                                                     lantid_r - lantid_l,
+                                                     lantid_b - bottom))
+
+      lw, lh = lantid_rect.get_size()
+
+      l_outh = int(lh * .3)
+
+      l_mineh = int(lh * .4)
+
+      l_chl = int(lw * .7)
+      l_chr= int(lw * .8)
+
+      l_outcl = int(lw * .65)
+      l_outcr = int(lw * .85)
+
+      l_miner = int(lw * .9)
+      l_minel = int(lw * .1)
+
+      l_minet = int(lh * .1)
+      l_mineb = int(lh * .9)
+    
+      l_out_points = ((0, lh), (0, l_outh), (l_outcl, l_outh),
+                      (l_outcl, 0), (l_outcr, 0),
+                      (l_outcr, l_outh), (lw, l_outh), (lw, lh))
+
+      l_mine_points = ((l_minel, l_mineb), (l_minel, l_mineh), (l_chl, l_mineh),
+                       (l_chl, l_minet), (l_chr, l_minet),
+                       (l_chr, l_mineh), (l_miner, l_mineh), (l_miner, l_mineb))
+
+      pygame.draw.polygon(lantid_rect, pygame.Color('black'), l_out_points)
+      pygame.draw.polygon(lantid_rect,
+                          COMPONENT_COLOR_MAP['blue'],
+                          l_mine_points)
+      
 
 
 
@@ -153,21 +385,26 @@ class GameBoard(HasPrivateTraits):
     self.draw()
     self.blit(window, origin)
 
-  def add_building(self, x, y, player_color, building_type):
+  def add_building(self, x, y, player_color, building_type, lantid_share=False):
     #check if the specified hex is a planet
-    if self.m.units[(x,y)] is None:
+    if self.m.units[(x,y)] is None and building_type != "lost planet":
       raise ValueError("Cannot add building to non-planet")
     elif (self.m.units[(x,y)].planet_type == 'transdim' and 
           building_type != 'gaiaformer'):
-      raise ValueError("Can only add gaiaformer to transdim planet")
+      raise ValueError("Can only add gaiaformer to transdim planet." 
+                       " Planet at ({0},{1}) was {2}".format(
+                       x, y, self.m.units[(x,y)].planet_type))
+    elif (self.m.units[(x,y)].planet_type != 'transdim' and
+          building_type == 'gaiaformer'):
+      raise ValueError("Transdim planet can only allow gaiaformer")
+    elif building_type == "gaiaformer" and lantid_share:
+      raise ValueError("Lantids cannot share gaiaformer")
 
-    if self.m.units[(x,y)].planet_type == 'desert' and player_color == 'yellow':
-      print("WARENING")
 
 
     planet_type = self.m.units[(x,y)].planet_type
     self.m.units[(x,y)] = Building(self.m, planet_type, player_color, 
-                                   building_type)
+                                   building_type, lantid_share)
     
 
 #  def add_a_building(self):

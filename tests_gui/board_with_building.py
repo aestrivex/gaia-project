@@ -9,6 +9,11 @@ if __name__ == '__main__':
   b = GameBoard()
 
   b.add_building(4, 4, 'yellow', 'mine')
+  b.add_building(4, 3, 'yellow', 'trading post', lantid_share=True)
+  b.add_building(5, 6, 'red', 'planetary institute', lantid_share=True)
+  b.add_building(6, 7, 'yellow', 'gaiaformer')
+  b.add_building(7, 9, 'white', 'research lab')
+  b.add_building(9, 9, 'white', 'academy')
 
   #print(b.m.ascii())
 

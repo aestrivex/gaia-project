@@ -10,6 +10,15 @@ PLANET_COLOR_MAP = {'gaia' : pygame.Color( 51, 204, 51),
                     'desert' : pygame.Color( 220, 170, 0),
                     'transdim' : pygame.Color( 140, 26, 225)}
 
+BUILDING_COLOR_MAP = {
+                      'orange' : pygame.Color( 255, 116, 0),
+                      'red' : pygame.Color( 153, 0, 51),
+                      'blue' : pygame.Color( 0, 153, 255),
+                      'white' : pygame.Color( 221, 221, 221),
+                      'gray' : pygame.Color( 122, 122, 122),
+                      'brown' : pygame.Color( 153, 102, 51),
+                      'yellow' : pygame.Color( 220, 170, 0),}
+
 TILE_1 = {(2,1) : 'swamp',
           (2,0) : 'desert',
           (3,3) : 'terra',

@@ -3,11 +3,19 @@ import sys
 import pygame
 
 import numpy as np
-from traits.api import HasTraits, Enum, Property
+from traits.api import HasPrivateTraits, Enum, Property
 SQRT3 = np.sqrt(3)
 
 
-class Planet(HasPrivateTraits, MapUnit):
+class Planet_Meta(type(HasPrivateTraits), type(MapUnit)):
+  pass
+
+class HasPrivateTraits(MapUnit):
+  pass
+
+
+class Planet(HasPrivateTraits):
+  __metaclass__ = Planet_Meta
 
   planet_type = Enum('gaia', 'volcanic', 'oxide', 'terra', 'ice', 'titanium',
                      'swamp', 'desert', 'transdim')
@@ -58,7 +66,7 @@ if __name__ == '__main__':
     fps_clock = pygame.time.Clock()
   
     window = pygame.display.set_mode( (800, 600), 1)
-    from pygame.locals import QUIT MOUSEBUTTONDOWN
+    from pygame.locals import QUIT, MOUSEBUTTONDOWN
   
     while True:
       for event in pygame.event.get():
@@ -68,7 +76,7 @@ if __name__ == '__main__':
         if event.type == MOUSEBUTTONDOWN:
           print(units.get_cell(event.pos)) 
 
-    window.fill( pygame.Color('black')
+    window.fill( pygame.Color('black'))
     grid.draw()
     units.draw()
     

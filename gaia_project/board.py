@@ -1,12 +1,12 @@
-from hexmap import Map, MapUnit, RenderGrid, RenderUnits
+from hexmap import Map, MapUnit, RenderGrid, RenderUnits, RenderFog
 import sys
 import pygame
 
 import numpy as np
-from traits.api import HasPrivateTraits, Enum, Property
+from traits.api import HasPrivateTraits, Enum, Property, Instance
 SQRT3 = np.sqrt(3)
 
-from .constants import planet_color_map
+from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP
 
 
 class Planet_Meta(type(HasPrivateTraits), type(MapUnit)):
@@ -28,15 +28,15 @@ class Planet(MapUnit):
     self.planet_type = planet_type
     
   def _get_color(self):
-#    planet_color_map = {'gaia' : pygame.Color( 51, 204, 51),
-#                        'volcanic' : pygame.Color( 255, 116, 0),
-#                        'oxide' : pygame.Color( 153, 0, 51),
-#                        'terra' : pygame.Color( 0, 153, 255),
-#                        'ice' : pygame.Color( 221, 221, 221),
-#                        'titanium' : pygame.Color( 122, 122, 122),
-#                        'swamp' : pygame.Color( 153, 102, 51),
-#                        'desert' : pygame.Color( 220, 170, 0),
-#                        'transdim' : pygame.Color( 140, 26, 225)}
+    planet_color_map = {'gaia' : pygame.Color( 51, 204, 51),
+                        'volcanic' : pygame.Color( 255, 116, 0),
+                        'oxide' : pygame.Color( 153, 0, 51),
+                        'terra' : pygame.Color( 0, 153, 255),
+                        'ice' : pygame.Color( 221, 221, 221),
+                        'titanium' : pygame.Color( 122, 122, 122),
+                        'swamp' : pygame.Color( 153, 102, 51),
+                        'desert' : pygame.Color( 220, 170, 0),
+                        'transdim' : pygame.Color( 140, 26, 225)}
     return planet_color_map[self.planet_type]
 
   def paint(self, surface):
@@ -46,52 +46,51 @@ class Planet(MapUnit):
 
 
 
+class GameBoard(HasPrivateTraits):
+  m = Instance(Map)
+  grid = Instance(RenderGrid)
+  units = Instance(RenderUnits)
+  fog = Instance(RenderFog)
 
-if __name__ == '__main__':
-
-  m = Map( (15, 14) )
-
-  grid = RenderGrid(m, radius=32)
-  units = RenderUnits(m, radius=32)
-
-  vp = Planet(m, 'volcanic')
-
-  m.units[(4, 7)] = vp 
-  m.units[(8, 8)] = Planet(m, 'oxide')
-  m.units[(6, 2)] = Planet(m, 'titanium')
-  m.units[(11, 5)] = Planet(m, 'swamp')
-  m.units[(13, 9)] = Planet(m, 'desert')
-  m.units[(14, 11)] = Planet(m, 'transdim')
-  m.units[(6, 12)] = Planet(m, 'terra')
-  m.units[(3, 6)] = Planet(m, 'ice')
-  m.units[(13, 3)] = Planet(m, 'gaia')
-
-  print(m.ascii())
-
-
-  try:
-    pygame.init()
-    fps_clock = pygame.time.Clock()
   
-    window = pygame.display.set_mode( (1600, 1200), 1)
-    from pygame.locals import QUIT, MOUSEBUTTONDOWN
-  
-    while True:
-      for event in pygame.event.get():
-        if event.type == QUIT:
-          pygame.quit()
-          sys.exit()
-        if event.type == MOUSEBUTTONDOWN:
-          print(units.get_cell(event.pos)) 
+  def __init__(self, cfg=BASIC_2P_SETUP, radius=42, *args, **kwargs):
 
-      window.fill( pygame.Color('black'))
-      grid.draw()
-      units.draw()
+
+    print(cfg)
+    #determine board size
+    max_x = 0
+    for x,y in cfg:
+      if x > max_x:
+        max_x = x
+  
+    #instantiate board components
+    self.m = Map( (max_x+5, max_x+5) )
+  
+    self.grid = RenderGrid(self.m, radius=radius)
+    self.units = RenderUnits(self.m, radius=radius)
+    self.fog = RenderFog(self.m, radius=radius)
+  
+    #Place planets
+    for (x, y), tile in cfg.items():
       
-      window.blit( grid, (0,0))
-      window.blit( units, (0,0))
+      for (planet_x, planet_y), planet_type in tile.items():
+        self.m.units[(x+planet_x, y+planet_y)] = Planet(self.m, planet_type)
   
-      pygame.display.update()
-      fps_clock.tick(10)
-  finally:
-    pygame.quit()
+    #fog out hexes not on board
+      for cell in self.m.spread( (x+3, y+2), radius=2):
+        self.m.fog[cell] = self.fog.VISIBLE
+  
+
+  def draw(self):
+    self.grid.draw()
+    self.units.draw()
+    self.fog.draw()
+
+  def blit(self, window, origin):
+    window.blit(self.grid, origin)
+    window.blit(self.units, origin)
+    window.blit(self.fog, origin)
+
+  def paint(self, window, origin):
+    self.draw()
+    self.blit(window, origin)

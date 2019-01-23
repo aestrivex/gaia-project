@@ -20,7 +20,7 @@ class Planet(MapUnit):
   __metaclass__ = MapUnit_Meta
 
   planet_type = Enum('gaia', 'volcanic', 'oxide', 'terra', 'ice', 'titanium',
-                     'swamp', 'desert', 'transdim')
+                     'swamp', 'desert', 'transdim', 'lost planet')
   planet_color = Property(depends_on = 'planet_type')
 
   def __init__(self, grid, planet_type, *args, **kwargs):
@@ -90,8 +90,15 @@ class Building(Planet):
                                                      bottom-top ))
     bw, bh = building_rect.get_size()
       
+    if self.building_type == 'lost planet':
+      #draw the planet too
+      radius = surface.get_width() // 2
+      pygame.draw.circle(surface, PLANET_COLOR_MAP['lost planet'],
+                        (radius, int(np.sqrt(3) / 2 * radius)),
+                        int(radius - radius * .3),
+                        1)
 
-    if self.building_type == 'mine':
+    if self.building_type in ('mine', 'lost planet'):
       outline_h = int(bh * .35)
 
       mine_h = int(bh * .4)
@@ -257,18 +264,24 @@ class Building(Planet):
                          (gsl1, g_b))
 
     elif self.building_type == 'academy':
-      ac_h = int(bh * .5)
+      ac_h = int(bh * .75)
+      outline_h = int(bh * .7)
 
-      outline_h = int(bh * .45)
+      story_h = int(bh * .5)
+      outline_sh = int(bh * .45)
 
-      story_l = int(bw * .25)
-      story_r = int(bw * .45)
-
-      outline_sl = int(bw * .2)
-      outline_sr = int(bw * .5)
-
+      ac_w = int(bw * .8)
       story_w = int(bw * .7)
-      outline_sw = int(bw * .75)
+
+      chimney_r = int(bw * .5)
+      chimney_l = int(bw * .2)
+      outline_cr = int(bw * .55)
+      outline_cl = int(bw * .15)
+
+      tri_l = int(bw * .3)
+      tri_r = int(bw * .4)
+      tri_h = int(bh * .25)
+      outline_th = int(bh * .2)
 
 
       ac_l = int(bw * .05)
@@ -276,16 +289,22 @@ class Building(Planet):
       ac_t = int(bh * .05)
       ac_b = int(bh * .95)
 
-      outline_points = ((0, bh), (0, outline_h), (outline_sl, 0), 
-                        (outline_sr, 0),
-                        (outline_sw, outline_h), (bw, outline_h), (bw, bh))
 
-      building_points = ((ac_l, ac_b), (ac_l, ac_h), (story_l, ac_t),
-                         (story_r, ac_t),
-                         (story_w, ac_h), (ac_r, ac_h), (ac_r, ac_b))
+      outline_points = ((0, bh), (outline_cl, ac_h), (outline_cl, outline_th),
+                        (tri_l, 0), (tri_r, 0),
+                        (outline_cr, outline_th), (outline_cr, outline_sh),
+                        (story_w, outline_sh), (ac_w, outline_h),
+                        (bw, outline_h), (bw, bh))
+
+      building_points = ((ac_l, ac_b), (chimney_l, ac_h), (chimney_l, tri_h),
+                         (tri_l, ac_t), (tri_r, ac_t),
+                         (chimney_r, tri_h), (chimney_r, story_h),
+                         (story_w, story_h), (ac_w, ac_h),
+                         (ac_r, ac_h), (ac_r, ac_b))
 
     else:
-      raise NotImplementedError
+      raise NotImplementedError("Cannot construct {0}".format(
+                          self.building_type))
 
     pygame.draw.polygon(building_rect, pygame.Color('black'), outline_points)
     pygame.draw.polygon(building_rect, 
@@ -389,24 +408,29 @@ class GameBoard(HasPrivateTraits):
     #check if the specified hex is a planet
     if self.m.units[(x,y)] is None and building_type != "lost planet":
       raise ValueError("Cannot add building to non-planet")
-    elif (self.m.units[(x,y)].planet_type == 'transdim' and 
-          building_type != 'gaiaformer'):
+
+    #allow colonization of lost planet on random hex
+    if building_type == 'lost planet':
+      planet_type = 'lost planet'
+    else:
+      planet_type = self.m.units[(x,y)].planet_type
+
+    #check for some illegal configurations of buildings
+    if planet_type == 'transdim' and building_type != 'gaiaformer':
       raise ValueError("Can only add gaiaformer to transdim planet." 
                        " Planet at ({0},{1}) was {2}".format(
-                       x, y, self.m.units[(x,y)].planet_type))
-    elif (self.m.units[(x,y)].planet_type != 'transdim' and
-          building_type == 'gaiaformer'):
+                       x, y, planet_type))
+    elif planet_type != 'transdim' and building_type == 'gaiaformer':
       raise ValueError("Transdim planet can only allow gaiaformer")
     elif building_type == "gaiaformer" and lantid_share:
       raise ValueError("Lantids cannot share gaiaformer")
 
 
-
-    planet_type = self.m.units[(x,y)].planet_type
     self.m.units[(x,y)] = Building(self.m, planet_type, player_color, 
                                    building_type, lantid_share)
     
 
+# TODO maybe someday the buildings will be pictures of game components
 #  def add_a_building(self):
 #    chimg = pygame.image.load('/home/aestrivex/Downloads/component.png')
 #

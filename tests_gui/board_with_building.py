@@ -14,6 +14,7 @@ if __name__ == '__main__':
   b.add_building(6, 7, 'yellow', 'gaiaformer')
   b.add_building(7, 9, 'white', 'research lab')
   b.add_building(9, 9, 'white', 'academy')
+  b.add_building(9, 10, 'white', 'lost planet')
 
   #print(b.m.ascii())
 

@@ -8,7 +8,8 @@ PLANET_COLOR_MAP = {'gaia' : pygame.Color( 51, 204, 51),
                     'titanium' : pygame.Color( 122, 122, 122),
                     'swamp' : pygame.Color( 153, 102, 51),
                     'desert' : pygame.Color( 220, 170, 0),
-                    'transdim' : pygame.Color( 140, 26, 225)}
+                    'transdim' : pygame.Color( 140, 26, 225),
+                    'lost planet' : pygame.Color( 120, 120, 255)}
 
 COMPONENT_COLOR_MAP = {
                       'orange' : pygame.Color( 255, 116, 0),

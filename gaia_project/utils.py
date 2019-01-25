@@ -34,7 +34,3 @@ def text(surface, msg, x_pos, y_pos, box_size_x, box_size_y,
 
     x = 1
     y += line_spacing
-
-#  if pygame.Color('blue') == color:
-#    print(y_pos, box_size_y, y, bounds.height, line_spacing)
-#    raise NotImplementedError

@@ -4,7 +4,8 @@ from gaia_project.tech_board import TechBoard, TechBoardRender
 
 if __name__ == '__main__':
 
-  t = TechBoard(600, 800, None)
+  t = TechBoard(500, 900, None)
+  t.power_actions[2].available = False
 
   try:
     pygame.init()
@@ -23,7 +24,7 @@ if __name__ == '__main__':
           pass
 
       window.fill( pygame.Color('black'))
-      t.paint(window, (1000,0))
+      t.paint(window, (1100,0))
       
       pygame.display.update()
       fps_clock.tick(10)

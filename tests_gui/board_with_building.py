@@ -18,6 +18,7 @@ if __name__ == '__main__':
 
   #print(b.m.ascii())
 
+  print(b.get_size())
 
   try:
     pygame.init()

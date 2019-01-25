@@ -29,7 +29,17 @@ TECH_BOARD_COLOR_MAP = {
                         'gaiaforming' : pygame.Color(153, 51, 255),
                         'economy' : pygame.Color(255, 128, 128),
                         'science' : pygame.Color(0, 200, 200),
+                        'power action' : pygame.Color(115, 0, 115),
+                        'qubit action' : pygame.Color(0, 115, 0),
+                        'action used' : pygame.Color(240, 0, 0),
+                        'gray' : pygame.Color(130, 130, 130),
                        }
+
+from .tile import PowerAction
+POWER_ACTIONS = (PowerAction('PA1'), PowerAction('PA2'), PowerAction('PA3'),
+                 PowerAction('PA4'), PowerAction('PA5'), PowerAction('PA6'),
+                 PowerAction('PA7'), PowerAction('QA1'), PowerAction('QA2'),
+                 PowerAction('QA3'))
 
 TECH_ORDER=('terraforming', 'navigation', 'AI',
             'gaiaforming', 'economy', 'science')
@@ -99,38 +109,38 @@ TECH_BOARD_LONG_DESCS = {
 
 TECH_BOARD_DESCS = {
                      (1, 0) : 'range=4, lost planet',
-                     (2, 0) : '+4q',
+                     (2, 0) : '+4Q',
                      (3, 0) : '+3VP +1VP per gaia',
-                     (4, 0) : '+3o +6c +6pw',
-                     (5, 0) : '+9k',
+                     (4, 0) : '+3o +6C +6pw',
+                     (5, 0) : '+9K',
 
                      (0, 2) : '+2o',
                      (1, 2) : 'range=3',
-                     (2, 2) : '+2q',
+                     (2, 2) : '+2Q',
                      (3, 2) : 'gaiaform=3pt',
-                     (4, 2) : 'i: 2o, 4c, 4pw',
-                     (5, 2) : 'i: 4k',
+                     (4, 2) : 'i: 2o, 4C, 4pw',
+                     (5, 2) : 'i: 4K',
 
                      (0, 3) : 'dig=1o, +3pw',
-                     (1, 3) : '+1q, +3pw',
-                     (2, 3) : '+2q, +3pw',
+                     (1, 3) : '+1Q, +3pw',
+                     (2, 3) : '+2Q, +3pw',
                      (3, 3) : 'gaiaform=4pt, +3pw',
-                     (4, 3) : 'i: 1o, 3c, 3pw, +3pw',
-                     (5, 3) : 'i: 3k, +3pw',
+                     (4, 3) : 'i: 1o, 3C, 3pw, +3pw',
+                     (5, 3) : 'i: 3K, +3pw',
 
                      (0, 4) : 'dig=2o',
                      (1, 4) : 'range=2',
-                     (2, 4) : '+1q', 
+                     (2, 4) : '+1Q', 
                      (3, 4) : '+3pt',
-                     (4, 4) : 'i: 1o, 2c, 2pw',
-                     (5, 4) : 'i : 2k',
+                     (4, 4) : 'i: 1o, 2C, 2pw',
+                     (5, 4) : 'i : 2K',
 
                      (0, 5) : '+2o',
-                     (1, 5) : '+1q',
-                     (2, 5) : '+1q',
+                     (1, 5) : '+1Q',
+                     (2, 5) : '+1Q',
                      (3, 5) : 'gaiaform=6pt',
-                     (4, 5) : 'i : 2c, 1pw',
-                     (5, 5) : 'i : 1k',
+                     (4, 5) : 'i : 2C, 1pw',
+                     (5, 5) : 'i : 1K',
 
                      (0, 6) : '',
                      (1, 6) : '',

@@ -1,4 +1,5 @@
-from traits.api import HasPrivateTraits, List, Enum, Str, Property, Instance
+from traits.api import (HasPrivateTraits, List, Enum, Str, Property, Instance, 
+                        Bool)
 from .effect import Effect
 from .player import Player
 
@@ -25,21 +26,21 @@ class TechTile(ObtainableTile):
 
   def _get_desc(self):
     if self.tech_id == 'TECH1':
-      return '+1o +1q'
+      return '+1o +1Q'
     elif self.tech_id == 'TECH2':
-      return '+1k per planet type'
+      return '+1K per ptype'
     elif self.tech_id == 'TECH3':
-      return 'AC=4pv, PI=4pv'
+      return 'AC=4pw, PI=4pw'
     elif self.tech_id == 'TECH4':
       return '+7VP'
     elif self.tech_id == 'TECH5':
       return 'i: 1o, 1pw'
     elif self.tech_id == 'TECH6':
-      return 'i: 1k, 1c'
+      return 'i: 1K, 1C'
     elif self.tech_id == 'TECH7':
       return 'gaia=3VP'
     elif self.tech_id == 'TECH8':
-      return 'i: 4c'
+      return 'i: 4C'
     elif self.tech_id == 'TECH9':
       return 'action: 4pw'
  
@@ -78,15 +79,15 @@ class AdvancedTechTile(TechTile):
     elif self.tech_id == 'ADV2':
       return 'tech=2VP'
     elif self.tech_id == 'ADV3':
-      return 'action: 1q, 5c'
+      return 'action: 1Q, 5C'
     elif self.tech_id == 'ADV4':
-      return '+2VP*mine'
+      return '+2VP per mine'
     elif self.tech_id == 'ADV5':
-      return 'passVP 3*RL'
+      return 'passVP 3 per RL'
     elif self.tech_id == 'ADV6':
-      return '+1o*sector'
+      return '+1o per sector'
     elif self.tech_id == 'ADV7':
-      return 'passVP 1 per planet type'
+      return 'passVP 1 per ptype'
     elif self.tech_id == 'ADV8':
       return '+1VP per gaia'
     elif self.tech_id == 'ADV9':
@@ -98,7 +99,7 @@ class AdvancedTechTile(TechTile):
     elif self.tech_id == 'ADV12':
       return '+5VP per fed'
     elif self.tech_id == 'ADV13':
-      return 'action: 3k'
+      return 'action: 3K'
     elif self.tech_id == 'ADV14':
       return 'mine=3VP'
     elif self.tech_id == 'ADV15':
@@ -150,15 +151,15 @@ class FederationTile(ObtainableTile):
     elif self.fed_id == 'FED2':
       return 'FED 8VP 1Q'
     elif self.fed_id == 'FED3':
-      return 'FED 8VP 2PT'
+      return 'FED 8VP 2pt'
     elif self.fed_id == 'FED4':
-      return 'FED 7VP 2O'
+      return 'FED 7VP 2o'
     elif self.fed_id == 'FED5':
       return 'FED 7VP 6C'
     elif self.fed_id == 'FED6':
       return 'FED 6VP 2K'
     elif self.fed_id == 'FEDGLEEN':
-      return 'FED 1O 1K 2C'
+      return 'FED 1o 1K 2C'
 
   def _get_long_desc(self):
     if self.fed_id == 'FED1':
@@ -187,13 +188,13 @@ class BonusTile(ObtainableTile):
 
   def _get_desc(self):
     if self.bonus_id == 'BON1':
-      return "i: 1o, 1k"
+      return "i: 1o, 1K"
     elif self.bonus_id == 'BON2':
       return "i: 2pt, 1o"
     elif self.bonus_id == 'BON3':
-      return "i: 2c, 1q"
+      return "i: 2C, 1Q"
     elif self.bonus_id == 'BON4':
-      return 'i: 2c action: 1dig'
+      return 'i: 2C action: 1dig'
     elif self.bonus_id == 'BON5':
       return 'i: 2pw action: +3range'
     elif self.bonus_id == 'BON6':
@@ -201,11 +202,11 @@ class BonusTile(ObtainableTile):
     elif self.bonus_id == 'BON7':
       return 'i: 1o passVP 2 per trade post'
     elif self.bonus_id == 'BON8':
-      return 'i: 1k passVP 3 per RL'
+      return 'i: 1K passVP 3 per RL'
     elif self.bonus_id == 'BON9':
       return 'i: 4pw passVP 4 per PI/AC'
     elif self.bonus_id == 'BON10':
-      return 'i: 4c passVP 1 per gaia'
+      return 'i: 4C passVP 1 per gaia'
 
   def _get_long_desc(self):
     if self.bonus_id == 'BON1':
@@ -290,4 +291,55 @@ class FinalScoringTile(Tile):
       return 'Most satellites'
 
   def _get_long_desc(self):
-    return self._desc
+    return self.desc
+
+class PowerAction(Tile):
+  power_action_id = Enum('PA1', 'PA2', 'PA3', 'PA4', 'PA5', 'PA6', 'PA7',
+                         'QA1', 'QA2', 'QA3')
+
+  available = Bool(True)
+  qubit_action = Bool(False)
+  cost = Property
+
+  def __init__(self, power_action_id):
+    self.power_action_id = power_action_id
+
+    if power_action_id[0] == 'Q':
+      self.qubit_action = True
+  
+  def _get_cost(self): 
+    if self.power_action_id == 'PA1':
+      return 7
+    elif self.power_action_id == 'PA2':
+      return 5
+    elif self.power_action_id in ('PA3', 'PA4', 'PA5', 'QA1'):
+      return 4
+    elif self.power_action_id in ('PA6', 'PA7', 'QA2'):
+      return 3
+    elif self.power_action_id == 'QA3':
+      return 2
+
+  def _get_desc(self):
+    if self.power_action_id == 'PA1':
+      return '+3K'
+    elif self.power_action_id == 'PA2':
+      return '+2dig'
+    elif self.power_action_id == 'PA3':
+      return '+2o'
+    elif self.power_action_id == 'PA4':
+      return '+7C'
+    elif self.power_action_id == 'PA5':
+      return '+2K'
+    elif self.power_action_id == 'PA6':
+      return '+1dig'
+    elif self.power_action_id == 'PA7':
+      return '+2pt'
+    elif self.power_action_id == 'QA1':
+      return '+tech'
+    elif self.power_action_id == 'QA2':
+      return 'fed'
+    elif self.power_action_id == 'QA3':
+      return 'VPs'
+
+  def _get_long_desc(self):
+    return self.desc

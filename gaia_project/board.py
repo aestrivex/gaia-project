@@ -408,6 +408,14 @@ class GameBoard(HasPrivateTraits):
       for cell in self.m.spread( (x+3, y+2), radius=2):
         self.m.fog[cell] = self.fog.VISIBLE
   
+  def get_width(self):
+    return self.grid.width
+
+  def get_height(self):
+    return self.grid.height
+
+  def get_size(self):
+    return (self.grid.width, self.grid.height)
 
   def draw(self):
     self.grid.draw()

@@ -9,19 +9,7 @@ from traits.api import (HasPrivateTraits, Enum, Property, Instance, List, Int,
 from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP, COMPONENT_COLOR_MAP
 
 
-class MapUnit_Meta(type(HasPrivateTraits), type(MapUnit)):
-  pass
-
-class HasPrivateTraits(MapUnit):
-  pass
-
-
 class Planet(MapUnit):
-  __metaclass__ = MapUnit_Meta
-
-  planet_type = Enum('gaia', 'volcanic', 'oxide', 'terra', 'ice', 'titanium',
-                     'swamp', 'desert', 'transdim', 'lost planet')
-  planet_color = Property(depends_on = 'planet_type')
 
   def __init__(self, grid, planet_type, *args, **kwargs):
     super().__init__(grid, *args, **kwargs)
@@ -58,14 +46,6 @@ class Planet(MapUnit):
 #                           y + (np.sqrt(3) / 2 * radius)//2 ) )
 
 class Building(Planet):
-  building_type = Enum('mine', 'trading post', 'planetary institute',
-                       'research lab', 'academy', 'lost planet')
-
-  building_color = Enum('orange', 'red', 'blue', 'white', 'gray',
-                        'brown', 'yellow')
-  
-  lantid_share = Bool(False)
-
   def __init__(self, grid, planet_type, building_color, building_type='mine', 
                lantid_share=False, *args, **kwargs):
     super().__init__(grid, planet_type, *args, **kwargs)
@@ -352,8 +332,47 @@ class Building(Planet):
                           l_mine_points)
       
 
+class Orbital(MapUnit):
 
+  def __init__(self, grid, satellites=[], space_station=False, *args, **kwargs):
+    super().__init__(grid, *args, **kwargs)
+    self.satellites = satellites
+    self.space_station = space_station
 
+  def paint(self, surface):
+
+    w, h = surface.get_size()
+
+    left = w*3//10
+    right = w*7//10
+    top = h//4
+    bottom = h*3//4
+
+    _, x1, x2, x3, x4 = np.linspace(left, right, num=5, endpoint=False)
+    _, y1, y2, y3, y4 = np.linspace(top, bottom, num=5, endpoint=False)
+
+    ex = w*2//25
+    ey = h//10
+
+    if self.space_station:
+
+      station_points = ((left, y2), (x1, y2), (x2, y1), (x2, top), 
+                        (x3, top), (x3, y1), (x4, y2), (right, y2),
+                        (right, y3), (x4, y3), (x3, y4), (x3, bottom), 
+                        (x2, bottom), (x2, y4), (x1, y3), (left, y3))
+
+      pygame.draw.polygon(surface, COMPONENT_COLOR_MAP['space station'],
+                          station_points)
+
+      pygame.draw.rect(surface, COMPONENT_COLOR_MAP['red'],
+                       pygame.Rect( (x2, y2, ex, ey)))
+
+    sat_points_list = ((left, top), (x4, top), (left, y4), (x4, y4))
+
+    for i, satellite_color in enumerate(self.satellites):
+      pygame.draw.rect(surface, COMPONENT_COLOR_MAP[satellite_color],
+                       (sat_points_list[i], (ex, ey)))
+                      
 class GameBoard(HasPrivateTraits):
   m = Instance(Map)
   grid = Instance(RenderGrid)
@@ -429,6 +448,22 @@ class GameBoard(HasPrivateTraits):
     self.m.units[(x,y)] = Building(self.m, planet_type, player_color, 
                                    building_type, lantid_share)
     
+  def add_orbital(self, x, y, satellites, space_station=False):
+    #check if specified hex is a planet
+    if self.m.units[(x,y)] is not None:
+      raise ValueError("Cannot add orbitals to planet hex")
+
+    if len(satellites) == 0 and not space_station:
+      raise ValueError("No orbitals specified")
+
+    if len(satellites) > 4:
+      raise NotImplementedError("No games above 4 players")
+    if space_station and len(satellites) > 3:
+      raise NotImplementedError("No games above 4 players")
+    if space_station and 'red' in satellites:
+      raise ValueError("Red player cannot have space station and satellite")
+
+    self.m.units[(x,y)] = Orbital(self.m, satellites, space_station)
 
 # TODO maybe someday the buildings will be pictures of game components
 #  def add_a_building(self):

@@ -1,0 +1,2 @@
+class GaiaProjectUIError(ValueError):
+  pass

@@ -45,102 +45,50 @@ STARTING_TECHS = {'Terrans' : 'gaiaforming',
                  }
       
 TECH_BOARD_LONG_DESCS = {
-                     (1, 0) : 'navigation range is 4, place lost planet',
-                     (2, 0) : 'gain 4 QICs immediately',
-                     (3, 0) : 'gain 3VP and +1VP per gaia immediately',
-                     (4, 0) : ('gain 3 ore and 6 coin and charge 6 power '
-                               'immediately'),
-                     (5, 0) : 'gain 9 knowledge immediately',
+                     (0, 1) : 'navigation range is 4, place lost planet',
+                     (0, 2) : 'gain 4 qubits immediately',
+                     (0, 3) : 'gain 3VP and +1VP per gaia immediately',
+                     (0, 4) : ('gain 3 ore and 6 coin and charge 6 power '
+                               'immediately')
+                     (0, 5) : 'gain 9 knowledge immediately',
 
-                     (0, 2) : 'gain 2 ore immediately',
-                     (1, 2) : 'navigation range is 3',
-                     (2, 2) : 'gain 2 QICs immediately',
-                     (3, 2) : ('gaia project costs 3 power tokens, unlock '
-                               '3rd gaiaformer'),
-                     (4, 2) : ('2 ore income, 4 coin income, 4 charge power '
+                     (2, 0) : 'gain 2 ore immediately',
+                     (2, 1) : 'navigation range is 3',
+                     (2, 2) : 'gain 2 qubits immediately',
+                     (2, 3) : 'gaiaform costs destroy 3 power tokens',
+                     (2, 4) : ('2 ore income, 4 coin income, 4 charge power '
                                'income'),
-                     (5, 2) : '4 knowledge income',
+                     (2, 5) : '4 knowledge income',
 
-                     (0, 3) : ('terraforming costs 1 ore, charge 3 power '
+                     (3, 0) : ('terraform cost 1 ore, charge 3 power '
                                'immediately'),
-                     (1, 3) : 'gain 1 QIC and charge 3 power immediately',
-                     (2, 3) : 'gain 2 QICs and charge 3 power immediately',
-                     (3, 3) : ('gaia project costs 4 power tokens, unlock '
-                               '2nd gaiaformer, charge 3 power immediately'),
-                     (4, 3) : ('1 ore income, 3 coin income, 3 charge power '
-                               'income and charge 3 power immediately'),
-                     (5, 3) : ('3 knowledge income and charge 3 power' 
-                               'immediately'),
-
-                     (0, 4) : 'terraforming costs 2 ore',
-                     (1, 4) : 'navigation range is 2',
-                     (2, 4) : 'gain 1 QIC immediately',
-                     (3, 4) : 'gain 3 new power tokens immediately',
-                     (4, 4) : ('1 ore income, 2 coin income, 2 charge power '
-                               'income'),
-                     (5, 4) : '2 knowledge income',
-
-                     (0, 5) : 'gain 2 ore immediately',
-                     (1, 5) : 'gain 1 QIC immediately',
-                     (2, 5) : 'gain 1 QIC immediately',
-                     (3, 5) : ('gaia project costs 6 power tokens, unlock '
-                               '1st gaiaformer'),
-                     (4, 5) : '2 coin income, 1 charge power income',
-                     (5, 5) : '1 knowedge income',
-
-                     (0, 6) : 'terraforming costs 3 core',
-                     (1, 6) : 'navigation range is 1',
-                     (2, 6) : 'no effect',
-                     (3, 6) : 'cannot initiate gaia project',
-                     (4, 6) : 'no effect',
-                     (5, 6) : 'no effect',
-                      
+                     (3, 1) : '+1 qubit, +3 charge power',
+                     (3, 2) : '+2 qubits, +3 charge power',
+                     (3, 3) : 'gaiaform=4 power token, +3 charge power',
+                     (3, 4) : ('1 ore income, 3 coin income, 1 charge power '
+                               'income, +3 charge power'),
                    }
 
 TECH_BOARD_DESCS = {
-                     (1, 0) : 'range=4, lost planet',
-                     (2, 0) : '+4q',
-                     (3, 0) : '+3VP +1VP per gaia',
-                     (4, 0) : '+3o +6c +6pw',
-                     (5, 0) : '+9k',
+                     (0, 1) : 'range=4, lost planet',
+                     (0, 2) : '+4q',
+                     (0, 3) : '+3VP +1VP per gaia',
+                     (0, 4) : '+3o +6c +6pw',
+                     (0, 5) : '+9k',
 
-                     (0, 2) : '+2o',
-                     (1, 2) : 'range=3',
+                     (2, 0) : '+2o',
+                     (2, 1) : 'range=3',
                      (2, 2) : '+2q',
-                     (3, 2) : 'gaiaform=3pt',
-                     (4, 2) : 'i: 2o, 4c, 4pw',
-                     (5, 2) : 'i: 4k',
+                     (2, 3) : 'gaiaform=-3pt',
+                     (2, 4) : 'i: 2o, 4c, 4pw',
+                     (2, 5) : 'i: 4k',
 
-                     (0, 3) : 'dig=1o, +3pw',
-                     (1, 3) : '+1q, +3pw',
-                     (2, 3) : '+2q, +3pw',
-                     (3, 3) : 'gaiaform=4pt, +3pw',
-                     (4, 3) : 'i: 1o, 3c, 3pw, +3pw',
-                     (5, 3) : 'i: 3k, +3pw',
-
-                     (0, 4) : 'dig=2o',
-                     (1, 4) : 'range=2',
-                     (2, 4) : '+1q', 
-                     (3, 4) : '+3pt',
-                     (4, 4) : 'i: 1o, 2c, 2pw',
-                     (5, 4) : 'i : 2k',
-
-                     (0, 5) : '+2o',
-                     (1, 5) : '+1q',
-                     (2, 5) : '+1q',
-                     (3, 5) : 'gaiaform=6pt',
-                     (4, 5) : 'i : 2c, 1pw',
-                     (5, 5) : 'i : 1k',
-
-                     (0, 6) : '',
-                     (1, 6) : '',
-                     (2, 6) : '',
-                     (3, 6) : '',
-                     (4, 6) : '',
-                     (5, 6) : '',
-                   }
-
-TECH_LEVEL_TO_IDX = {0:6, 1:5, 2:4, 3:3, 4:2, 5:0}
+                     (3, 0) : 'dig=-1o, +3pw',
+                     (3, 1) : '+1q, +3pw',
+                     (3, 2) : '+2q, +3pw',
+                     (3, 3) : 'gaiaform=--4pt, +3pw',
+                     (3, 4) : 'i: 1o, 3c, 3pw',
+                     (3, 5) : 'i: 3k',
 
 TILE_1 = {(2,1) : 'swamp',
           (2,0) : 'desert',

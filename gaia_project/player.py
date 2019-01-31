@@ -1,22 +1,25 @@
 from traits.api import (HasPrivateTraits, List, Instance, Dict, Enum, Property,
-                        )
+                        Int, cached_property, Str, Tuple)
 from .constants import (INCOME_CHART, STARTING_POWER, BUILDING_COSTS,
                         BUILDING_PATHS, STARTING_RESOURCES)
-
+from .tile import Tile
+from .effect import Effect
 
 class Player(HasPrivateTraits):
+  username = Str
+
   tiles = List(Instance(Tile))
   
-  buildings = Dict  #str -> int
+  buildings = Dict(Str, Int)  
                     #building type -> number remaining on player board)
 
   faction = Enum('Terrans', 'Lantids', 'Nevlas', 'Itars', 'Bescods', 'Firaks',
                  'Ambas', 'Taklons', 'Gleens', 'Xenos', 'Geodens', 'Bal Taks',
                  'Hadsch Hallas', 'Ivits')
 
-  building_costs = Dict #dict {str-> {resource -> cost}}
+  building_costs = Dict(Str, Dict(Str, Int)) #{building-> {resource -> cost}}
 
-  building_paths = Dict #dict {mine -> trade post}
+  building_paths = Dict(Str, Tuple) #{mine -> trade post}
 
   starting_buildings = List
   special_placement_order = Int
@@ -26,7 +29,7 @@ class Player(HasPrivateTraits):
   #structure {base -> {knowledge -> 1, coin -> 1},
   #           mines -> ({ore -> 1}, {ore -> 1}, {ore -> 0})
   #           etc}
-  _income_chart = Dict
+  _income_chart = Dict(Str, Tuple)
 
   #available resources
   knowledge = Int
@@ -34,7 +37,7 @@ class Player(HasPrivateTraits):
   ore = Int
   qubit = Int
   key = Int(0)
-  power = Dict      #bowl str -> int
+  power = Dict(Str, Int)      #bowl str -> int
 
   academy_action = Instance(Effect)
 
@@ -83,10 +86,14 @@ class Player(HasPrivateTraits):
   def _get_pi_built(self):
     return self.buildings['planetary institute'] == 0
 
+  qubit_acad_built = Property
+  def _get_qubit_acad_built(self):
+    return self.buildings['action academy'] == 0
+
   building_income = Property(depends_on = 'buildings')
   @cached_property
   def _get_building_income(self):
-    income = {'mine' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
+    income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
     for building in self._income_chart:
       n_placed = self.buildings[building]
@@ -104,7 +111,7 @@ class Player(HasPrivateTraits):
   tile_income = Property(depends_on = 'tiles')
   @cached_property
   def _get_tile_income(self):
-    income = {'mine' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
+    income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
     for tile in self.tiles:
       for resource in tile.effect.income:
@@ -115,7 +122,7 @@ class Player(HasPrivateTraits):
   income = Property(depends_on = 'building_income, tile_income')
   @cached_property
   def _get_income(self):
-    income = {'mine' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
+    income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
 
     for resource in self.tile_income:
@@ -126,7 +133,7 @@ class Player(HasPrivateTraits):
 
     return income
 
-  def __init__(self, faction):
+  def __init__(self, faction, username='Freddy'):
     super().__init__()
 
     self.faction = faction
@@ -134,9 +141,12 @@ class Player(HasPrivateTraits):
     self.buildings = {'mine' : 8,
                       'trading post' : 4,
                       'research lab' : 3,
-                      'academy' : 2,
+                      'action academy' : 1,
+                      'knowledge academy' : 1,
                       'planetary institute' : 1,
-                      'gaiaformer' : 3}
+                'gaiaformer' : 1 if faction in ('Terrans', 'Bal Taks') else 0}
+
+    self.username = username
 
     self._income_chart = INCOME_CHART[faction] 
     self.tiles = []

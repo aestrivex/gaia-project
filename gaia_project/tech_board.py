@@ -1,7 +1,7 @@
 import pygame
 import pygame.freetype
 from traits.api import (HasPrivateTraits, List, Bool, Property, Dict, Instance,
-                        Int, Tuple)
+                        Int, Tuple, Range, Str)
 from .tile import TechTile, AdvancedTechTile, FederationTile
 from .constants import (TECH_BOARD_COLOR_MAP, COMPONENT_COLOR_MAP, TECH_ORDER,
                         TECH_BOARD_DESCS, TECH_BOARD_LONG_DESCS,
@@ -44,7 +44,7 @@ class TechBoardRender(pygame.Surface):
     gy = np.around(np.linspace(0, self.height, 10, endpoint=False)).astype(int)
 
     ex = self.width//6
-    ey = self.height//9
+    ey = self.height//10
 
 
     for i, x in enumerate(gx):
@@ -73,7 +73,7 @@ class TechBoardRender(pygame.Surface):
           #render advanced techs
 
           try:
-            text(self, "{0}\n{1}".format(self.advanced_tech_tiles[i].tech_id,
+            text(self, "{0}\n{1}".format(self.advanced_tech_tiles[i].tile_id,
                                         self.advanced_tech_tiles[i].long_desc),
                       x, y, ex, ey)
           except GaiaProjectUIError:
@@ -88,7 +88,7 @@ class TechBoardRender(pygame.Surface):
         elif j==7:
           #render regular techs
           try:
-            text(self, "{0}\n{1}".format(self.tech_tiles[i].tech_id,
+            text(self, "{0}\n{1}".format(self.tech_tiles[i].tile_id,
                                         self.tech_tiles[i].long_desc),
                       x, y, ex, ey)
           except GaiaProjectUIError:
@@ -103,11 +103,11 @@ class TechBoardRender(pygame.Surface):
           #render regular techs
           if i in (1, 3, 5):
             continue       
-          tech_idx = i//2+6
+          tile_idx = i//2+6
 
           try:
-            text(self, "{0}\n{1}".format(self.tech_tiles[tech_idx].tech_id,
-                                        self.tech_tiles[tech_idx].long_desc),
+            text(self, "{0}\n{1}".format(self.tech_tiles[tile_idx].tile_id,
+                                        self.tech_tiles[tile_idx].long_desc),
                       x, y, ex, ey)
           except GaiaProjectUIError:
             #redraw gray rectangle
@@ -115,7 +115,7 @@ class TechBoardRender(pygame.Surface):
             pygame.draw.rect(self, pygame.Color('black'), (x, y, ex, ey), 1)
 
             #draw smaller text
-            text(self, "{0}".format(self.tech_tiles[tech_idx].desc), 
+            text(self, "{0}".format(self.tech_tiles[tile_idx].desc), 
                  x, y, ex, ey)
     
         else:
@@ -218,9 +218,9 @@ class TechBoard( HasPrivateTraits ):
 
   terraforming_federation = Instance(FederationTile)
 
-  player_techs = Dict
+  player_techs = Dict(Str, Dict(Str, Int))
 
-  width = Int
+  width = Range(high=750)
   height = Int
 
   def __init__(self, width, height, players, 
@@ -273,11 +273,37 @@ class TechBoard( HasPrivateTraits ):
                                   self.power_actions
                                  )
 
+  def _width_changed(self):
+    if self.render is not None:
+      self.render.width = self.width
+  
+  def _height_changed(self):
+    if self.render is not None:
+      self.render.height = self.height
+
   def paint(self, window, origin):
     self.render.paint(window, origin)
 
-    
-    
+  def process_event(self, x, y):
+    ex = self.width//6
+    ey = self.height//10
+
+    x_box = x // ex
+    y_box = y // ey
+
+    if y_box == 1:
+      return self.advanced_tech_tiles[x_box]
+
+    if y_box in (7,8):
+      return self.tech_tiles[x_box]
+      pass
+
+    elif y_box == 9:
+      ex_p = self.width//10
+      return EventDescription(power_action = POWER_ACTIONS[x // ex_p])
+
+    else:
+      return EventDescription(tech_track = TECH_ORDER[x_box])
 
 
 

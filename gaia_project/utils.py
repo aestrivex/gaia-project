@@ -1,5 +1,6 @@
 import pygame
 import pygame.freetype
+import logging
 
 class GaiaProjectUIError(ValueError):
   pass
@@ -26,7 +27,7 @@ def text(surface, msg, x_pos, y_pos, box_size_x, box_size_y,
         if y + line_spacing >= box_size_y:
           errmsg = 'Tile "{0}" too big to show on board size {1}x{2}'.format(
                       msg, surface.width, surface.height)
-          print(errmsg)
+          logging.info(errmsg)
           raise GaiaProjectUIError(errmsg)    
 
       f.render_to(surface, (x_pos+x, y_pos+y), None, color)

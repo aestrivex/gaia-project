@@ -4,7 +4,7 @@ import pygame
 
 import numpy as np
 from traits.api import (HasPrivateTraits, Enum, Property, Instance, List, Int, 
-                        Bool)
+                        Bool, Range)
 
 from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP, COMPONENT_COLOR_MAP
 
@@ -92,8 +92,8 @@ class Building(Planet):
       mine_r = int(bw * .95)
       mine_l = int(bw * .05)
 
-      mine_t = int(bh * .05)
-      mine_b = int(bh * .95)
+      mine_t = int(bh * .1)
+      mine_b = int(bh * .9)
 
       outline_points = ((0, bh), (0, outline_h), 
                         (outline_cl, outline_h),
@@ -128,8 +128,8 @@ class Building(Planet):
 
       post_l = int(bw * .05)
       post_r = int(bw * .95)
-      post_t = int(bh * .05)
-      post_b = int(bh * .95)
+      post_t = int(bh * .1)
+      post_b = int(bh * .9)
 
       outline_points = ((0, bh), (0, outline_h), 
                         (outline_cl, outline_h),
@@ -155,8 +155,8 @@ class Building(Planet):
 
       pi_l = int(bw * .05)
       pi_r = int(bw * .95)
-      pi_b = int(bh * .95)
-      pi_t = int(bh * .05)
+      pi_b = int(bh * .9)
+      pi_t = int(bh * .1)
 
       outline_h = int(bh * .45)
       outline_sh = int(bh * .2)
@@ -196,8 +196,8 @@ class Building(Planet):
 
       rl_l = int(bw * .05)
       rl_r = int(bw * .95)
-      rl_t = int(bh * .05)
-      rl_b = int(bh * .95)
+      rl_t = int(bh * .1)
+      rl_b = int(bh * .9)
       
       outline_points = ((0, bh), (0, rl_h), (outline_tl, outline_th),
                         (outline_tl, outline_h), (outline_sl, 0),
@@ -210,7 +210,7 @@ class Building(Planet):
                          (tower_r, tower_h), (rl_r, rl_h), (rl_r, rl_b))
 
     elif self.building_type == 'gaiaformer':
-      g_h = int(bh * .5)
+      g_h = int(bh * .45)
       
       gsl1 = int(bw * .2)
       gsr1 = int(bw * .4)
@@ -225,8 +225,8 @@ class Building(Planet):
 
       g_l = int(bw * .05)
       g_r = int(bw * .95)
-      g_t = int(bh * .05)
-      g_b = int(bh * .95)
+      g_t = int(bh * .1)
+      g_b = int(bh * .9)
 
 
       outline_points = ((0, bh), (0, g_h), (gsr1, 0), (gsl2, 0),
@@ -266,8 +266,8 @@ class Building(Planet):
 
       ac_l = int(bw * .05)
       ac_r = int(bw * .95)
-      ac_t = int(bh * .05)
-      ac_b = int(bh * .95)
+      ac_t = int(bh * .1)
+      ac_b = int(bh * .9)
 
 
       outline_points = ((0, bh), (outline_cl, ac_h), (outline_cl, outline_th),
@@ -379,24 +379,34 @@ class GameBoard(HasPrivateTraits):
   units = Instance(RenderUnits)
   fog = Instance(RenderFog)
 
-  radius = Int
-  
-  def __init__(self, cfg=BASIC_2P_SETUP, radius=42, *args, **kwargs):
+  radius = Range(low=25, value=42)
 
-    self.radius = radius
+  width = Property
+  height = Property
+  size = Property
+  
+  def __init__(self, cfg=BASIC_2P_SETUP, radius=None, *args, **kwargs):
 
     #determine board size
     max_x = 0
+    max_y = 0
     for x,y in cfg:
       if x > max_x:
         max_x = x
+      if y > max_y:
+        max_y = y
   
     #instantiate board components
-    self.m = Map( (max_x+5, max_x+5) )
+    self.m = Map( (max_x+5, max_y+5) )
+
+    if radius is not None:
+      self.radius = radius
   
-    self.grid = RenderGrid(self.m, radius=radius)
-    self.units = RenderUnits(self.m, radius=radius)
-    self.fog = RenderFog(self.m, radius=radius)
+    radius_floor = int(self.radius)
+
+    self.grid = RenderGrid(self.m, radius=radius_floor)
+    self.units = RenderUnits(self.m, radius=radius_floor)
+    self.fog = RenderFog(self.m, radius=radius_floor)
   
     #Place planets
     for (x, y), tile in cfg.items():
@@ -408,14 +418,17 @@ class GameBoard(HasPrivateTraits):
       for cell in self.m.spread( (x+3, y+2), radius=2):
         self.m.fog[cell] = self.fog.VISIBLE
   
-  def get_width(self):
+  def _get_width(self):
     return self.grid.width
 
-  def get_height(self):
+  def _get_height(self):
     return self.grid.height
 
-  def get_size(self):
+  def _get_size(self):
     return (self.grid.width, self.grid.height)
+
+  def get_cell(self, coords):
+    return self.grid.get_cell(coords)
 
   def draw(self):
     self.grid.draw()
@@ -472,6 +485,12 @@ class GameBoard(HasPrivateTraits):
       raise ValueError("Red player cannot have space station and satellite")
 
     self.m.units[(x,y)] = Orbital(self.m, satellites, space_station)
+
+  def process_event(self, pos):
+    return self.get_cell(pos)
+
+  def highlight_hex(self, pos):
+    pass #TODO
 
 # TODO maybe someday the buildings will be pictures of game components
 #  def add_a_building(self):

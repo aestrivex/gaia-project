@@ -33,9 +33,10 @@ TECH_BOARD_COLOR_MAP = {
                         'qubit action' : pygame.Color(0, 115, 0),
                         'action used' : pygame.Color(240, 0, 0),
                         'gray' : pygame.Color(130, 130, 130),
+                        'button' : pygame.Color(85, 85, 85),
                        }
 
-from .tile import PowerAction
+from .effect import PowerAction
 POWER_ACTIONS = (PowerAction('PA1'), PowerAction('PA2'), PowerAction('PA3'),
                  PowerAction('PA4'), PowerAction('PA5'), PowerAction('PA6'),
                  PowerAction('PA7'), PowerAction('QA1'), PowerAction('QA2'),
@@ -440,7 +441,7 @@ STARTING_POWER = {'Terrans' : {'gaia' : 0, '1' : 4, '2' : 4, '3' : 0},
                   'Firaks' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0},
                   'Ambas' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0},
                   'Taklons' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0, 
-                               'brainstone' : '1'},
+                               'brainstone' : 1},
                   'Gleens' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0},
                   'Xenos' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0},
                   'Geodens' : {'gaia' : 0, '1' : 2, '2' : 4, '3' : 0},
@@ -478,14 +479,14 @@ BUILDING_COSTS = {'mine' : {'coin' : 2, 'ore' : 1},
                  }
 
 BUILDING_PATHS = {
-                  'normal' : {'mine' : tuple('trading post'),
+                  'normal' : {'mine' : (('trading post'),),
                               'trading post' : ('planetary institute',
                                                      'research lab'),
-                              'research lab' : tuple('academy')
+                              'research lab' : (('academy'),)
                              },
-                  'bescods' : {'mine' : tuple('trading post'),
+                  'bescods' : {'mine' : (('trading post'),),
                                'trading post' : ('academy',
                                                       'research lab'),
-                               'research lab' : tuple('planetary institute')
+                               'research lab' : (('planetary institute'),)
                               }
                  }

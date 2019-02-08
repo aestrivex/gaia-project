@@ -5,6 +5,9 @@ import logging
 class GaiaProjectUIError(ValueError):
   pass
 
+class GaiaProjectValidationError(ValueError):
+  pass
+
 def text(surface, msg, x_pos, y_pos, box_size_x, box_size_y, 
          font_size=14, color=pygame.Color('black')):
   lines = msg.split('\n') 
@@ -35,3 +38,7 @@ def text(surface, msg, x_pos, y_pos, box_size_x, box_size_y,
 
     x = 1
     y += line_spacing
+
+def text_size(font_size=14):
+  f = pygame.freetype.SysFont(pygame.freetype.get_default_font(), font_size)
+  return f.get_sized_height() + 2

@@ -4,9 +4,10 @@ import pygame
 
 import numpy as np
 from traits.api import (HasPrivateTraits, Enum, Property, Instance, List, Int, 
-                        Bool, Range)
+                        Bool, Range, Tuple)
 
 from .constants import PLANET_COLOR_MAP, BASIC_2P_SETUP, COMPONENT_COLOR_MAP
+from .move_action import EventDescription
 
 
 class Planet(MapUnit):
@@ -14,6 +15,7 @@ class Planet(MapUnit):
   def __init__(self, grid, planet_type, *args, **kwargs):
     super().__init__(grid, *args, **kwargs)
     self.planet_type = planet_type
+    self.highlight = False
     
   def _get_planet_color(self):
     return PLANET_COLOR_MAP[self.planet_type]
@@ -23,6 +25,9 @@ class Planet(MapUnit):
     pygame.draw.circle(surface, self._get_planet_color(), 
                        (radius, int(np.sqrt(3) / 2 * radius)),
                        int(radius - radius * .3) )
+
+    if self.highlight:
+      pass
 
 #TODO someday, maybe make the Buildings 3D models of real game pieces
 
@@ -322,9 +327,11 @@ class Building(Planet):
                       (l_outcl, 0), (l_outcr, 0),
                       (l_outcr, l_outh), (lw, l_outh), (lw, lh))
 
-      l_mine_points = ((l_minel, l_mineb), (l_minel, l_mineh), (l_chl, l_mineh),
+      l_mine_points = ((l_minel, l_mineb), (l_minel, l_mineh), 
+                       (l_chl, l_mineh),
                        (l_chl, l_minet), (l_chr, l_minet),
-                       (l_chr, l_mineh), (l_miner, l_mineh), (l_miner, l_mineb))
+                       (l_chr, l_mineh), (l_miner, l_mineh), 
+                       (l_miner, l_mineb))
 
       pygame.draw.polygon(lantid_rect, pygame.Color('black'), l_out_points)
       pygame.draw.polygon(lantid_rect,
@@ -384,6 +391,8 @@ class GameBoard(HasPrivateTraits):
   width = Property
   height = Property
   size = Property
+
+  highlighted_hexes = List(Tuple)
   
   def __init__(self, cfg=BASIC_2P_SETUP, radius=None, *args, **kwargs):
 
@@ -444,7 +453,9 @@ class GameBoard(HasPrivateTraits):
     self.draw()
     self.blit(window, origin)
 
-  def add_building(self, x, y, player_color, building_type, lantid_share=False):
+  def add_building(self, x, y, player_color, building_type, 
+                   lantid_share=False):
+
     #check if the specified hex is a planet
     if self.m.units[(x,y)] is None and building_type != "lost planet":
       raise ValueError("Cannot add building to non-planet")
@@ -487,10 +498,41 @@ class GameBoard(HasPrivateTraits):
     self.m.units[(x,y)] = Orbital(self.m, satellites, space_station)
 
   def process_event(self, pos):
-    return self.get_cell(pos)
+    if self.get_cell(pos) is None:
+      return None
+
+    x, y = self.get_cell(pos)
+
+    if not self.is_valid_hex(x, y):
+      return None
+
+    return EventDescription(coordinates=(x, y))
+      
 
   def highlight_hex(self, pos):
-    pass #TODO
+    x, y = pos
+    if not self.is_valid_hex(x, y):
+      return
+    #self.m.units[pos].highlight = True
+    self.m.fog[pos] = self.fog.HIGHLIGHTED
+    self.highlighted_hexes.append(pos)
+
+  def unhighlight_hex(self, pos):
+    x, y = pos
+    if not self.is_valid_hex(x, y):
+      return
+    self.m.fog[pos] = self.fog.VISIBLE
+    #self.m.units[(x,y)].highlight = False
+
+  def unhighlight_all(self):
+    for pos in self.highlighted_hexes:
+      #self.m.units[pos].highlight = False
+      self.m.fog[pos] == self.fog.VISIBLE
+      
+    self.highlighted_hexes = []
+
+  def is_valid_hex(self, x, y):
+    return self.m.fog[(x,y)] in (self.fog.VISIBLE, self.fog.HIGHLIGHTED)
 
 # TODO maybe someday the buildings will be pictures of game components
 #  def add_a_building(self):

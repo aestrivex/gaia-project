@@ -147,6 +147,7 @@ class RenderFog( Render ):
   OBSCURED = pygame.Color( 00, 00, 00, 255 )
   SEEN	 = pygame.Color( 00, 00, 00, 100 )
   VISIBLE	 = pygame.Color( 00, 00, 00, 0 )
+  HIGHLIGHTED = pygame.Color( 00, 255, 00, 110 )
 
   def __init__( self, map, *args, **keywords ):
 

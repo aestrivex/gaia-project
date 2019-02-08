@@ -1,24 +1,63 @@
 
-from traits.api import (HasPrivateTraits, Int, Instance, Property, Enum)
+from traits.api import (HasPrivateTraits, Int, Instance, Property, Enum, Any)
 
 from .board import GameBoard
 from .tech_board import TechBoard
 from .player_panel import PlayerPanel
 
+import pygame
 import numpy as np
 
 class Layout(HasPrivateTraits):
+  radius = Int(42)
+
+  fps = Int(10)
+
   board = Instance(GameBoard)
   tech_board = Instance(TechBoard)
   player_panel = Instance(PlayerPanel)
 
-  window_h = Int(1200)
+  window = Instance(pygame.Surface)
+  clock = Any
+
   window_w = Int(1600)
+  window_h = Int(1200)
 
   n_tiles = Enum(7, 8, 9, 10)
 
   board_h = Property
   board_w = Property
+
+  def __init__(self, players, cfg, radius=None, *args, **kwargs):
+    super().__init__(*args, **kwargs)
+
+    first_player = players[0]
+
+    self.n_tiles = len(cfg)
+
+    if radius is None:
+      if len(cfg) == 10:
+        self.radius = 35
+      elif len(cfg) == 7:
+        self.radius = 42
+      else:
+        raise NotImplementedError("need configuration test for 8/9 tile")
+    
+    self.board = GameBoard(cfg=cfg, radius=self.radius)
+
+    tb_w, tb_h = self.tech_board_coords()
+    self.tech_board = TechBoard(tb_w, tb_h, players)
+
+    pp_w, pp_h = self.player_panel_coords()
+    self.player_panel = PlayerPanel(pp_w, pp_h, first_player)
+
+    self.window = pygame.display.set_mode( (self.window_w, 
+                                            self.window_h),
+                       #                    pygame.RESIZABLE)
+                                            )
+
+    self.clock = pygame.time.Clock()
+
 
   def _get_board_h(self):
     if self.n_tiles == 7:
@@ -57,10 +96,14 @@ class Layout(HasPrivateTraits):
   def player_panel_coords(self):
     return (self.window_w, self.window_h - self.board_h)
   
-  def paint(self, window):
-    self.board.paint(window, (0,0))
-    self.tech_board.paint(window, (self.tech_board_x, 0))
-    self.player_panel.paint(window, (0, self.player_panel_y))
+  def paint(self):
+    self.window.fill( pygame.Color('black') )
+    self.board.paint(self. window, (0,0))
+    self.tech_board.paint(self.window, (self.tech_board_x, 0))
+    self.player_panel.paint(self.window, (0, self.player_panel_y))
+    pygame.display.update()
+    
+    self.clock.tick(self.fps)
 
   def resize(self, w, h):
     self.window_w = w
@@ -95,9 +138,9 @@ class Layout(HasPrivateTraits):
   def pass_event(self, origin_surf, pos):
     x, y = pos
     if origin_surf == self.board:
-      self.board.process_event(pos)
+      return self.board.process_event(pos)
     elif origin_surf == self.tech_board:
-      self.tech_board.process_event(x - self.tech_board_x, y)
+      return self.tech_board.process_event(x - self.tech_board_x, y)
     elif origin_surf == self.player_panel:
-      self.player_panel.process_event(x, y - self.player_panel_y)
+      return self.player_panel.process_event(x, y - self.player_panel_y)
     

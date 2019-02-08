@@ -1,4 +1,5 @@
 import pygame
+from .move_action import PowerAction
 
 PLANET_COLOR_MAP = {'gaia' : pygame.Color( 51, 204, 51),
                     'volcanic' : pygame.Color( 255, 116, 0),
@@ -36,7 +37,6 @@ TECH_BOARD_COLOR_MAP = {
                         'button' : pygame.Color(85, 85, 85),
                        }
 
-from .effect import PowerAction
 POWER_ACTIONS = (PowerAction('PA1'), PowerAction('PA2'), PowerAction('PA3'),
                  PowerAction('PA4'), PowerAction('PA5'), PowerAction('PA6'),
                  PowerAction('PA7'), PowerAction('QA1'), PowerAction('QA2'),
@@ -477,6 +477,13 @@ BUILDING_COSTS = {'mine' : {'coin' : 2, 'ore' : 1},
                   'research lab' : {'coin' : 5, 'ore' : 3},
                   'academy' : {'coin' : 6, 'ore' : 6}
                  }
+
+BUILDING_HEIGHTS = {'mine' : 1,
+                    'trading post' : 2,
+                    'planetary institute' : 3,
+                    'research lab' : 2,
+                    'academy' : 1,
+                    'space station' : 1}
 
 BUILDING_PATHS = {
                   'normal' : {'mine' : (('trading post'),),

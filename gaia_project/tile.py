@@ -1,5 +1,5 @@
 from traits.api import (HasPrivateTraits, List, Enum, Str, Property, Instance, 
-                        Bool, Any)
+                        Bool, Any, Either)
 from .effect import Effect
 
 class Tile(HasPrivateTraits):
@@ -77,7 +77,7 @@ class TechTile(ObtainableTile):
     elif self.tile_id == 'TECH2':
       return Effect(immediate={'per' : {'planet type' : {'knowledge' : 1}}})
     elif self.tile_id == 'TECH3':
-      return Effect(power_value_AcadPI_4=True)
+      return Effect()
     elif self.tile_id == 'TECH4':
       return Effect(immediate={'VP' : 7})
     elif self.tile_id == 'TECH5':
@@ -89,12 +89,15 @@ class TechTile(ObtainableTile):
     elif self.tile_id == 'TECH8':
       return Effect(income={'coin' : 4})
     elif self.tile_id == 'TECH9':
-      return Effect(special_action={'charge' : 4})
+      #return Effect(special_action={'charge' : 4})
+      return Effect(special_action ='SPEC_TECH9')
 
 class AdvancedTechTile(TechTile):
   tile_id = Enum('ADV1', 'ADV2', 'ADV3', 'ADV4', 'ADV5', 'ADV6',
                 'ADV7', 'ADV8', 'ADV9', 'ADV10', 'ADV11', 'ADV12',
                 'ADV13', 'ADV14', 'ADV15')
+
+  replaced = Either(None, Instance(TechTile))
 
   def _get_desc(self):
     if self.tile_id == 'ADV1':
@@ -166,7 +169,8 @@ class AdvancedTechTile(TechTile):
     elif self.tile_id == 'ADV2':
       return Effect(when={'techup' : {'VP' : 2}})
     elif self.tile_id == 'ADV3':
-      return Effect(special_action={'qubit' : 1, 'coin' : 5})
+      #return Effect(special_action={'qubit' : 1, 'coin' : 5})
+      return Effect(special_action='SPEC_ADV3')
     elif self.tile_id == 'ADV4':
       return Effect(immediate={'per' : {'mine' : {'VP' : 2}}})
     elif self.tile_id == 'ADV5':
@@ -182,11 +186,13 @@ class AdvancedTechTile(TechTile):
     elif self.tile_id == 'ADV10':
       return Effect(immediate={'per' : {'sector' : {'VP' : 2}}})
     elif self.tile_id == 'ADV11':
-      return Effect(special_action={'ore' : 3})
+      #return Effect(special_action={'ore' : 3})
+      return Effect(special_action='SPEC_ADV11')
     elif self.tile_id == 'ADV12':
       return Effect(immediate={'per' : {'federation' : {'VP' : 5}}})
     elif self.tile_id == 'ADV13':
-      return Effect(special_action={'knowledge' : 3})
+      #return Effect(special_action={'knowledge' : 3})
+      return Effect(special_action='SPEC_ADV13')
     elif self.tile_id == 'ADV14':
       return Effect(when={'build' : {'mine' : {'VP' : 3}}})
     elif self.tile_id == 'ADV15':
@@ -302,9 +308,15 @@ class BonusTile(ObtainableTile):
     elif self.tile_id == 'BON3':
       return Effect(income={'coin' : 2, 'qubit' : 1})
     elif self.tile_id == 'BON4':
-      return Effect(income={'coin' : 2}, special_action={'terraform' : 1})
+      return Effect(income={'coin' : 2}, 
+                    #special_action={'terraform' : 1},
+                    special_action='SPEC_BON4',
+                    choices=['coordinate'])
     elif self.tile_id == 'BON5':
-      return Effect(income={'charge' : 2}, special_action={'+range' : 3})
+      return Effect(income={'charge' : 2},
+                    #special_action={'+range' : 3},
+                    special_action='SPEC_BON5',
+                    choices=['coordinate'])
     elif self.tile_id == 'BON6':
       return Effect(income={'ore' : 1},
                     whenpass={'per' : {'mine' : {'VP' : 1}}})
@@ -359,7 +371,7 @@ class RoundScoringTile(Tile):
 
   def _effect_default(self):
     if self.tile_id == 'RS1':
-      return Effect(when={'per' : {'terraform' : {'VP' : 2}}})
+      return Effect(when={'terraform' : {'VP' : 2}})
     elif self.tile_id == 'RS2':
       return Effect(when={'techup' : {'VP' : 2}})
     elif self.tile_id == 'RS3':

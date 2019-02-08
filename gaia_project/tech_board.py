@@ -3,9 +3,10 @@ import pygame.freetype
 from traits.api import (HasPrivateTraits, List, Bool, Property, Dict, Instance,
                         Int, Tuple, Range, Str)
 from .tile import TechTile, AdvancedTechTile, FederationTile
+from .move_action import EventDescription
 from .constants import (TECH_BOARD_COLOR_MAP, COMPONENT_COLOR_MAP, TECH_ORDER,
                         TECH_BOARD_DESCS, TECH_BOARD_LONG_DESCS,
-                        TECH_LEVEL_TO_IDX, POWER_ACTIONS)
+                        TECH_LEVEL_TO_IDX, POWER_ACTIONS, STARTING_TECHS)
 from .utils import GaiaProjectUIError, text
 import numpy as np
 
@@ -190,7 +191,7 @@ class TechBoardRender(pygame.Surface):
                              (octx[3], octy[2]), (octx[1], octy[0])))
 
       #draw the actions cost
-      text(self, str(self.power_actions[i].cost), 
+      text(self, str(self.power_actions[i]._cost_amount), 
                   octx[0], gy[-1:]+(octy[0]-gy[-1:])//3,
                   octx[1]-octx[0], octy[1]-octy[0], color=pa_color)
                   
@@ -218,7 +219,7 @@ class TechBoard( HasPrivateTraits ):
 
   terraforming_federation = Instance(FederationTile)
 
-  player_techs = Dict(Str, Dict(Str, Int))
+  player_techs = Dict(Str, Dict(Str, Int)) #track -> (color -> int)
 
   width = Range(high=750)
   height = Int
@@ -238,9 +239,14 @@ class TechBoard( HasPrivateTraits ):
     #set some default values if they are not specified
     if players is not None:
       #figure out the true player tech levels
-      pass
-    else:
+      self.player_techs = dict(zip(TECH_ORDER,
+                                   [dict(zip([p.color for p in players],
+                                             [0]*len(players)))]*6))
+      for player in players:
+        if player.faction in STARTING_TECHS:
+          self.player_techs[STARTING_TECHS[player.faction]][player.color] = 1
 
+    else:
       zero_dummy_techs = {'red' : 0, 'yellow' : 0}
       self.player_techs = {'terraforming' : zero_dummy_techs,
                            'navigation' : zero_dummy_techs.copy(),
@@ -292,11 +298,18 @@ class TechBoard( HasPrivateTraits ):
     y_box = y // ey
 
     if y_box == 1:
-      return self.advanced_tech_tiles[x_box]
+      return EventDescription(
+        tech_tile_choice = self.advanced_tech_tiles[x_box])
 
-    if y_box in (7,8):
-      return self.tech_tiles[x_box]
-      pass
+    if y_box == 7:
+      return EventDescription(tech_tile_choice = self.tech_tiles[x_box])
+
+    elif y_box == 8:
+      if x_box in (1,3,5):
+        return
+      else:
+        return EventDescription(
+          tech_tile_choice = self.tech_tiles[6 + x_box // 2])
 
     elif y_box == 9:
       ex_p = self.width//10
@@ -306,6 +319,8 @@ class TechBoard( HasPrivateTraits ):
       return EventDescription(tech_track = TECH_ORDER[x_box])
 
 
+  def techup(color, tech_track): 
+    self.player_techs[tech_track][color] += 1
 
 
 if __name__ == '__main__':

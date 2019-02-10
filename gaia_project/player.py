@@ -24,12 +24,6 @@ class Player(HasPrivateTraits):
 
   building_paths = Dict(Str, Tuple) #{mine -> trade post}
 
-  starting_buildings = List
-  special_placement_order = Int
-
-  home_terrain = Enum('terra', 'oxide', 'volcanic', 'desert', 'swamp', 
-                          'titanium', 'ice')
-
   #the income chart holds all the income information on the player board,
   #including base income, which incomes come from which buildings
   #structure {base -> {knowledge -> 1, coin -> 1},
@@ -83,8 +77,8 @@ class Player(HasPrivateTraits):
     elif self.faction in ('Hadsch Hallas', 'Ivits'):
       return 'red'
 
-  home_planet = Property
-  def _get_home_planet(self):
+  home_terrain = Property
+  def _get_home_terrain(self):
     if self.faction in ('Terrans', 'Lantids'):
       return 'terra'
     elif self.faction in ('Nevlas', 'Itars'):
@@ -116,6 +110,9 @@ class Player(HasPrivateTraits):
     income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
     for building in self._income_chart:
+      if building == 'base':
+        continue
+
       n_placed = self.buildings[building]
       n_produced = 0
       for building_copy in self._income_chart[building]:
@@ -134,7 +131,7 @@ class Player(HasPrivateTraits):
     income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
     for tile in self.tiles:
-      if not tile.is_active:
+      if tile.effect.income is None:
         continue
       for resource in tile.effect.income:
         income[resource] += tile.effect.income[resource]
@@ -146,6 +143,10 @@ class Player(HasPrivateTraits):
   def _get_income(self):
     income = {'ore' : 0, 'knowledge' : 0, 'coin' : 0, 'qubit' : 0,
               'power token' : 0, 'charge' : 0}
+
+    base_income = self._income_chart['base'][0]
+    for resource in base_income:
+      income[resource] += base_income[resource]
 
     for resource in self.tile_income:
       income[resource] += self.tile_income[resource]
@@ -210,15 +211,6 @@ class Player(HasPrivateTraits):
     self.knowledge = STARTING_RESOURCES[faction]['knowledge']
     self.coin = STARTING_RESOURCES[faction]['coin']
     self.qubit = STARTING_RESOURCES[faction]['qubit']
-
-    if faction == 'Ivits':
-      self.starting_buildings = ['planetary institute']
-      self.special_placement_order = 2
-    elif faction == 'Xenos':
-      self.starting_buildings = ['mine', 'mine', 'mine']
-      self.special_placement_order = 1
-    else:
-      self.starting_buildings = ['mine', 'mine']
 
     if faction == 'Ivits':
       self.pi_bonus = Effect(special_action='SPEC_IVIT')

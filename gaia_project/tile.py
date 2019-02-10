@@ -89,7 +89,6 @@ class TechTile(ObtainableTile):
     elif self.tile_id == 'TECH8':
       return Effect(income={'coin' : 4})
     elif self.tile_id == 'TECH9':
-      #return Effect(special_action={'charge' : 4})
       return Effect(special_action ='SPEC_TECH9')
 
 class AdvancedTechTile(TechTile):

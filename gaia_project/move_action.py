@@ -138,6 +138,12 @@ class TakeableAction(Interaction):
   def __repr__(self):
     return self.__str__()
 
+  def merge_input(self, description):
+    for attr in description.trait_names():
+      if attr in ('trait_added', 'trait_modified'):
+        continue
+      if getattr(description, attr) not in ((), [], None, False, {}):
+        setattr(self.description, attr, getattr(description, attr))
 
 class PowerAction(TakeableAction):
   action_id = Enum('PA1', 'PA2', 'PA3', 'PA4', 'PA5', 'PA6', 'PA7',
@@ -508,21 +514,28 @@ class MoveAction(TakeableAction):
     elif self.action_id == 'ACT8':
       return ['bonus_tile']
 
-  def merge_input(self, description):
-    for attr in description.trait_names():
-      if attr in ('trait_added', 'trait_modified'):
-        continue
-      if getattr(description, attr) not in ((), [], None, False, {}):
-        setattr(self.description, attr, getattr(description, attr))
   
-class PassiveCharge(Interaction):
+class PassiveCharge(TakeableAction):
   action_id = Enum('PASSIVE_CHARGE')
+
+  description = Instance(EventDescription, ())
+
+  choices = Property
+  def _get_choices(self):
+    return ['charge_passive']
 
   height = Int
   vp = Int
 
   adjusted_charge = Int
 
+  gains = Property
+  def _get_gains(self):
+    return {'charge' : self.adjusted_charge, 'VP' : -(self.adjusted_charge-1)}
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(action_id='PASSIVE_CHARGE', *args, **kwargs)
+  
   def adjust_charge(self, cur_power):
     self.adjusted_charge = self.height
 
@@ -535,8 +548,33 @@ class PassiveCharge(Interaction):
 
     return self.adjusted_charge
 
+class InitialPlacement(TakeableAction):
+  action_id = Enum('INITIAL_PLACEMENT')
+  description = Instance(EventDescription, ())
+
+  choices = Property
+  def _get_choices(self):
+    return ['coordinate']
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(action_id='INITIAL_PLACEMENT', *args, **kwargs)
+
+class InitialBonus(TakeableAction):
+  action_id = Enum('INITIAL_BONUS')
+  description = Instance(EventDescription, ())
+
+  choices = Property
+  def _get_choices(self):
+    return ['bonus_tile']
+
+  def __init__(self, *args, **kwargs):
+    super().__init__(action_id='INITIAL_BONUS', *args, **kwargs)
+
+
 class Reaction(TakeableAction):
   action_id = Enum('GAIA_TERRAN', 'GAIA_ITAR')
+
+  description = Instance(EventDescription, ())
 
   def _get_desc(self):
     if self.action_id == 'GAIA_TERRAN':

@@ -36,9 +36,10 @@ class GameState(HasPrivateTraits):
 
   orbitals = Dict(Tuple, Tuple)
 
-  lost_planet = Tuple #((x, y), owner)
+  lost_planet = Tuple #(owner, (x,y))
 
   board_configuration = Dict(Tuple, Str)
+  sectors = Dict(Tuple, Dict(Tuple, Str))
   map = Instance(Map)
 
   federations_formed = List(Tuple) #(owner, [(x,y)...])
@@ -62,6 +63,7 @@ class GameState(HasPrivateTraits):
     
     self.players = players
 
+    self.sectors = cfg
     self.board_configuration = {}
 
     for tile_placement in cfg:
@@ -253,6 +255,22 @@ class GameState(HasPrivateTraits):
         if self.board_configuration[loc] == 'gaia':
           n_gaia += 1
     return n_gaia
+
+  def is_loc_in_sector(self, loc, sector):
+    sx, sy = sector
+    sector_center = (sx + 3, sy + 2)
+    return loc in self.map.spread(sector_center, radius=2)
+
+  def is_building_urban(self, player, loc):
+    urban_zone = self.map.spread(loc, radius=2)
+
+    for urban_loc in urban_zone:
+      if urban_loc in self.buildings:
+        if self.buildings[urban_loc][0] == player:
+          continue
+        else:
+          return True
+    return False
 
   def is_federation_legal(self, player, fed_struct):
 

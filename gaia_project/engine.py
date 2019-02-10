@@ -4,8 +4,9 @@ from .player import Player
 from .game_state import GameState
 from .communication_layer import CommunicationLayer
 from .move_action import (TakeableAction, EventDescription, MoveAction, 
-                          FreeAction, SpecialAction, PowerAction, TechupAction)
-from .tile import AdvancedTechTile
+                          FreeAction, SpecialAction, PowerAction, TechupAction,
+                          InitialPlacement, InitialBonus, PassiveCharge)
+from .tile import (AdvancedTechTile, BonusTile)
 from .constants import BUILDING_COSTS
 
 import pygame
@@ -27,7 +28,7 @@ class Engine(HasPrivateTraits):
     self.clayer.update_gfx()
 
 
-    self.setup_board()
+    self.initial_placements()
 
     for round_n in range(1, 7):
       self.run_income()
@@ -65,8 +66,48 @@ class Engine(HasPrivateTraits):
   def run_cleanup(self):
     pass
 
-  def setup_board(self):
-    pass
+  def _initial_placement_helper(self, player, move):
+    while True:
+      choices_successful = self.fetch_choices(player, move)
+      if not choices_successful:
+        continue
+
+      ip_decision, explanation = self.is_initial_placement_legal(player, move)
+      if not ip_decision:
+        self.clayer.inform_illegal_choice(player, explanation)
+        continue
+
+      self.execute_initial_placement(player, move)
+      return
+
+  def initial_placements(self):
+    placement_order = self.game_state.turn_order.copy()
+
+    for player in placement_order:
+      if player.faction == 'Ivits':
+        continue
+      self._initial_placement_helper(player, InitialPlacement())
+  
+    placement_order.reverse()
+
+    for player in placement_order:
+      if player.faction == 'Ivits':
+        continue
+      self._initial_placement_helper(player, InitialPlacement())
+
+    for player in placement_order:
+      if player.faction != 'Xenos':
+        continue
+      self._initial_placement_helper(player, InitialPlacement())
+
+    for player in placement_order:
+      if player.faction != 'Ivits':
+        continue
+      self._initial_placement_helper(player, InitialPlacement())
+
+    for player in placement_order:
+      self._initial_placement_helper(player, InitialBonus())
+      
 
   def fetch_choices(self, player, move):
     #in general, the choices are inserted into the move description
@@ -103,6 +144,15 @@ class Engine(HasPrivateTraits):
     self.execute_move(player, move) 
     return True
 
+  def process_passive_charge(self, player, move):
+    while True:
+      choices_successful = self.fetch_choices(player, move)
+
+      if choices_successful:
+        if not move.bonus_declined:
+          self.execute_accepted_passive_charge(player, move) 
+        return
+
   def is_choice_needed(self, player, choice, move):
     desc = move.description
     if move.action_id == 'ACT3':
@@ -126,6 +176,39 @@ class Engine(HasPrivateTraits):
   def is_tech_track_choice_constrained_by_tile(self, move):
     desc = move.description
     return self.game_state.tech_tiles.index(desc.tech_tile_choice) >= 6 
+
+  def is_initial_placement_legal(self, player, move):
+    desc = move.description
+
+    if move.action_id == 'INITIAL_PLACEMENT':
+
+      if desc.coordinates is None:
+        explanation = 'No hex selected'
+        return False, explanation
+    
+      assert(player.buildings['mine'] > 0)
+  
+      xy = desc.coordinates
+      b = self.game_state.buildings
+  
+      if xy not in self.game_state.board_configuration:
+        explanation = 'There is no planet there'
+        return False, explanation
+  
+      if self.game_state.board_configuration[xy] != player.home_terrain:
+        explanation = 'Must make initial placement on home terrain'
+        return False, explanation
+  
+      if xy in b:
+        explanation = 'There is already a building there (hopefully yours)'
+        return False, explanation
+  
+    if move.action_id == 'INITIAL_BONUS':
+      if desc.bonus_tile is None:
+        explanation = "No bonus tile selected"
+        return False, explanation
+
+    return True, None
 
   def is_move_legal(self, player, move):
 
@@ -153,6 +236,18 @@ class Engine(HasPrivateTraits):
       
       xy = desc.coordinates
       b = self.game_state.buildings
+
+      if desc.upgrade == 'trading post':
+        if self.game_state.is_building_urban(player, xy):
+          upgrade = 'urban trading post'
+        else:
+          upgrade = 'rural trading post'
+      else:
+          upgrade = desc.upgrade
+
+      if not player.can_afford(player.building_costs[upgrade]):
+        explanation = "Can't afford to upgrade building"
+        return False, explanation
 
       if xy not in self.game_state.board_configuration:
         explanation = 'There is no planet there'
@@ -500,6 +595,28 @@ class Engine(HasPrivateTraits):
 
     return True, None
 
+  def execute_initial_placement(self, player, move):
+    desc = move.description
+
+    if move.action_id == 'INITIAL_PLACEMENT':
+      xy = desc.coordinates
+
+      if player.faction == 'Ivits':
+        building_type = 'planetary institute'
+      else:
+        building_type = 'mine'
+
+      self.game_state.buildings[xy] = (player, building_type)
+      player.buildings[building_type] -= 1
+
+      self.clayer.add_building(player, xy, building_type)
+
+    if move.action_id == 'INITIAL_BONUS':
+      self.game_state.bonus_tiles[desc.bonus_tile] = player
+      player.tiles.append(desc.bonus_tile)
+
+      self.execute_effect(player, desc.bonus_tile.effect)
+
   def execute_move(self, player, move):
     desc = move.description    
 
@@ -520,7 +637,15 @@ class Engine(HasPrivateTraits):
       building_type = desc.upgrade
       cur_building_type = self.game_state.buildings[xy]
 
-      player.execute_spend(player.building_costs[building_type])
+      if building_type == 'trading post':
+        if self.game_state.is_building_urban(player, xy):
+          building_cost_type = 'urban trading post'
+        else:
+          building_cost_type = 'rural trading post'
+      else:
+        building_cost_type = building_type
+
+      player.execute_spend(player.building_costs[building_cost_type])
       self.clayer.add_building(player, xy, building_type)
 
       if desc.tech_tile_choice is not None:
@@ -559,20 +684,20 @@ class Engine(HasPrivateTraits):
           cur_bonus = tile
 
       #handle changes in whenpass effects
-      self.execute_whenpass_effects(player)
+      self.execute_pass_effects(player)
 
-      if len(cur_bonus.whenpass) > 0:
-        player.whenpass_effects.remove(cur_bonus.whenpass)
+      if len(cur_bonus.effect.whenpass) > 0:
+        player.whenpass_effects.remove(cur_bonus.effect)
       
-      self.game_state.bonus_tiles[bonus_tile] = player
+      self.game_state.bonus_tiles[desc.bonus_tile] = player
       player.tiles.remove(cur_bonus)
       self.game_state.bonus_tiles[cur_bonus] = None
-      player.tiles.append(bonus_tile)
+      player.tiles.append(desc.bonus_tile)
       
       self.game_state.next_turn_order.append(player)
       self.game_state.turn_order.remove(player)
 
-      self.execute_effect(player, bonus_tile.effect)
+      self.execute_effect(player, desc.bonus_tile.effect)
 
     #POWER ACTION 2
     if move.action_id == 'PA2':
@@ -655,9 +780,13 @@ class Engine(HasPrivateTraits):
 
       self.clayer.add_building(player, xy, 'lost planet')
 
+      self.game_state.lost_planet = (player, xy)
+
       self.execute_when_build_effects(player, 'mine')
       self.game_state.add_to_bordering_federations(player, xy)
       self.recalculate_area_control_metrics(player, move)
+
+      self.execute_may_passive_charge(player, xy)
   
   def execute_build_mine(self, player, move, bonus_terraforming=0, 
                                              bonus_nav=0):
@@ -699,10 +828,9 @@ class Engine(HasPrivateTraits):
                                         player.home_terrain)
       self.execute_when_terraform_effects(player, n_times=shovels_needed)
 
-    self.recalculate_area_control_metrics(player, move)
-
     self.game_state.buildings[xy] = (player, 'mine')
     self.game_state.add_to_bordering_federations(player, xy)
+    self.recalculate_area_control_metrics(player, move)
 
   def execute_gaiaform(self, player, move, bonus_nav=0):
     desc = move.description
@@ -756,12 +884,12 @@ class Engine(HasPrivateTraits):
     self._execute_vp_and_resource_gains(player, effect.immediate, 
                                         n_times=n_times)
 
-    if effect.when is not None:
+    if len(effect.when) > 0:
       player.when_effects.append(effect)
-    if effect.whenpass is not None:
-      player.whenpss_effects.append(effect)
+    if len(effect.whenpass) > 0:
+      player.whenpass_effects.append(effect)
 
-  def execute_pass_effect(self, player, n_times=1):
+  def execute_pass_effects(self, player, n_times=1):
     for effect in player.whenpass_effects:
       assert(len(effect.whenpass) > 0) 
       assert('per' in effect.whenpass)
@@ -817,3 +945,76 @@ class Engine(HasPrivateTraits):
         self.game_state.score[player] += gains['VP'] * n_times
 
       player.execute_gain(gains, n_times=n_times)
+
+  def execute_may_passive_charge(self, player, xy):
+    b = self.game_state.buildings
+
+    targets = self.game_state.m.spread(xy, radius=2)
+    biggest_buildings = {}
+
+    for target in targets:
+      if target in b:
+        if b[target][0] == player:
+          continue
+        height = self.game_state._height_of_building_or_orbital(b[target][1])
+        if b[target][0] not in biggest_buildings:
+          biggest_buildings[b[target][0]] = height
+        elif biggest_buildings[b[target][0]] < height:
+          biggest_buildings[b[target][0]] = height
+
+    for player in biggest_buildings:
+      height = biggest_buildings[player]
+      vp = self.game_state.score[player]
+
+      charge_move = PassiveCharge(height=height, vp=vp)
+      if charge_move.adjust_power(player.power) > 0:
+        self.process_passive_charge(player, charge_move)
+        
+  def execute_accepted_passive_charge(self, player, move):
+    self._execute_vp_and_resource_gains(move.gains)
+
+  def recalculate_area_control_metrics(self, player):
+    #recalculate sectors
+    n_sectors = 0
+    for sector_loc in self.game_state.sectors:
+      sector = self.game_state.sectors[sector_loc]
+      if self.game_state.lost_planet is not ():
+        if self.game_state.lost_planet[0] == player:
+          if self.game_state.is_loc_in_sector(lost_planet[1], sector_loc):
+            n_sectors += 1
+            continue
+
+      for planet in sector:
+        if planet in self.game_state.buildings:
+          if self.game_state.buildings[planet][0] == player:
+            n_sectors += 1
+            break
+
+    player.sectors = n_sectors 
+
+    #recalculate planet types
+    planet_types_recorded = []
+
+    for building in self.game_state.buildings:
+      if self.game_state.buildings[building][0] == player:
+        if self.board_configuration[building] not in planet_types_recorded:
+          planet_types_recorded.append(self.board_configuration[building])
+
+    if self.game_state.lost_planet is not ():
+      if self.game_state.lost_planet[0] == player:
+        planet_types_recorded.append('lost planet')
+
+    player.planet_types = len(planet_types_recorded)
+
+    #recalculate federation buildings
+    n_fed_buildings = 0
+    for federation in self.game_state.federations_formed:
+      if federation[0] != player:
+        continue
+      for loc in federation[1]:
+        if loc in self.game_state.buildings:
+          if loc not in fed_buildings_recorded:
+            fed_buildings_recorded.append(loc)
+      
+    player.federation_buildings = len(fed_buildings_recorded)
+          

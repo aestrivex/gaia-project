@@ -19,3 +19,10 @@ def terrain_distance(a, b):
     return (bi-ai)%7
   else:
     return (ai-bi)%7
+
+def automa_terraform_distance(home, target):
+  if target == 'gaia':
+    return 1
+  elif target == 'transdim':
+    return 2
+  return terrain_distance(home, target)

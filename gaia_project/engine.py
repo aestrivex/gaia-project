@@ -367,7 +367,7 @@ class Engine(HasPrivateTraits):
           self.game_state.orbitals[xy][1] == 'space station'):
         explanation = 'There is already a space station there'
         return False, explanation
-      if not self.game_state.in_navigation_range(player, xy, bonus):
+      if not self.game_state.in_effective_range(player, xy, bonus):
         explanation = 'Selected hex not in range'
         return False, explanation
 
@@ -452,7 +452,7 @@ class Engine(HasPrivateTraits):
         explanation = 'May not place lost planet on existing satellite'
         return False, explanation
 
-      if not self.game_state.in_navigation_range(player, xy, bonus=1):
+      if not self.game_state.in_effective_range(player, xy, bonus=1):
         explanation = 'Lost planet must be placed in range 4'
         return False, explanation
 
@@ -510,7 +510,7 @@ class Engine(HasPrivateTraits):
       explanation = 'Cannot afford to terraform'
       return False, explanation
 
-    if not self.game_state.in_navigation_range(player, xy, bonus=bonus_nav):
+    if not self.game_state.in_effective_range(player, xy, bonus=bonus_nav):
       explanation = 'Selected hex not in range'
       return False, explanation
 
@@ -550,7 +550,7 @@ class Engine(HasPrivateTraits):
           self.game_state.tech_progress['gaiaforming'][player]):
       explanation = 'Not enough power to start gaia project'
       return False, explanation
-    if not self.game_state.in_navigation_range(player, xy, bonus=bonus_nav):
+    if not self.game_state.in_effective_range(player, xy, bonus=bonus_nav):
       explanation = 'Selected hex not in range'
       return False, explanation
   
@@ -946,7 +946,7 @@ class Engine(HasPrivateTraits):
       elif per_what == 'planet type':
         n = player.planet_types
       elif per_what == 'gaia':
-        n = self.game_state.get_num_gaias(player)
+        n = self.game_state.get_num_gaias_owned_by_player(player)
 
       gains = per[per_what]
 
@@ -1005,16 +1005,17 @@ class Engine(HasPrivateTraits):
     player.sectors = n_sectors 
 
     #recalculate planet types
-    planet_types_recorded = []
+    planet_types_recorded = set()
 
     for building in self.game_state.buildings:
       if self.game_state.buildings[building][0] == player:
-        if self.board_configuration[building] not in planet_types_recorded:
-          planet_types_recorded.append(self.board_configuration[building])
+        planet_type = self.game_state.board_configuration[building]
+        if planet_type not in planet_types_recorded:
+          planet_types_recorded.add(planet_type)
 
     if self.game_state.lost_planet is not ():
       if self.game_state.lost_planet[0] == player:
-        planet_types_recorded.append('lost planet')
+        planet_types_recorded.add('lost planet')
 
     player.planet_types = len(planet_types_recorded)
 

@@ -29,7 +29,6 @@ class GameState(HasPrivateTraits):
   tech_progress = Dict(Str, Dict(Instance(Player), Int))
   final_scoring_tiles = List(FinalScoringTile)
   round_scoring_tiles = List(RoundScoringTile)
-  bonus_tiles = List(Instance(BonusTile))
   bonus_tiles = Dict(Instance(BonusTile), Instance(Player))
 
   power_actions_available = Dict(Instance(Interaction), Bool)
@@ -160,7 +159,12 @@ class GameState(HasPrivateTraits):
 
     print(self.tech_progress)
                                            
-    
+  def get_available_bonus_tiles(self):
+    available_tiles = []
+    for tile in self.bonus_tiles:
+      if self.bonus_tiles[tile] is None:
+        available_tiles.append(tile)
+    return available_tiles
 
   def get_terrain(self, coordinates):
     return self.board_configuration[coordinates]
@@ -202,7 +206,7 @@ class GameState(HasPrivateTraits):
         return True
     return False
 
-  def in_navigation_range(self, player, coordinates, bonus=0):
+  def in_effective_range(self, player, coordinates, bonus=0):
     return self._navigate(player, coordinates)[0]
 
   def get_nav_cost(self, player, coordinates, bonus=0):
@@ -224,14 +228,18 @@ class GameState(HasPrivateTraits):
       #hexes_in_range = self.m.spread(coordinates, radius=nav_range+q*2+bonus)
       working_range = nav_range + q * 2 + bonus
   
-      for loc in self.buildings:
-        building = self.buildings[loc]
-        if building[0] is player:
-          #if building[1] in hexes_in_range:
-          if self.map.distance(building[1], coordinates) <= working_range:
-            return True, q
+      if self.in_literal_range(player, coordinates, working_range):
+        return True, q
 
     return False, np.nan
+
+  def in_literal_range(self, player, coordinates, nav):
+    for loc in self.buildings:
+      building = self.buildings[loc]
+      if building[0] is player:
+        if self.map.distance(building[1], coordinates) < nav:
+          return True
+    return False
 
   def charge_height(self, player, coordinates):
     #hexes_in_range = self.m.spread(coordinates, radius=2)
@@ -281,8 +289,16 @@ class GameState(HasPrivateTraits):
     return collection_height
 
   def is_collection_contiguous(self, coords):
-    #TODO
-    NotImplemented
+    contigs = set()
+    for loc in coords:
+      if loc in contigs:
+        continue
+      for coordinates in coords:
+        if self.map.distance(loc, coordinates) == 1:
+          contigs.add(loc)
+          contigs.add(coordinates)
+
+    return len(contigs) == len(coords):
 
   def get_all_buildings_of_type_from_player(self, player, building_type):
     player_buildings = []
@@ -292,12 +308,19 @@ class GameState(HasPrivateTraits):
           player_buildings.append(loc)
     return player_buildings
 
-  def closest_buliding_of_type_to_any_other_player(self, player, bulding_type):
+  def closest_building_of_type_to_any_other_player(self, player, bulding_type):
     buildings = self.get_all_buildings_of_type_from_player(player, building_type)
 
+    min_dist = np.inf
     for building in buildings:
-      
-      #get distance to any other player
+      dist = self.min_distance_to_any_other_player(player, building) 
+      if dist < min_dist:
+        min_dist = dist
+        closest_buildings = [building]
+      if dist == min_dist:
+        closest_buildings.append(building)
+
+    return closest_buildings
 
   def min_distance_to_any_other_player(self, player, coordinates):
     min_dist = np.inf
@@ -309,15 +332,21 @@ class GameState(HasPrivateTraits):
           min_dist = dist
 
     return min_dist
-    
 
-  def get_num_gaias(self, player):
+  def get_num_gaias_owned_by_player(self, player):
     n_gaia = 0
     for loc in self.buildings:
       if self.buildings[loc][0] == player:
         if self.board_configuration[loc] == 'gaia':
           n_gaia += 1
     return n_gaia
+
+  def get_empty_planets(self):
+    empty_planets = []
+    for loc in self.board_configuration:
+      if loc not in self.buildings:
+        empty_planets.append(loc)
+    return empty_planets
 
   def is_loc_in_sector(self, loc, sector):
     sx, sy = sector

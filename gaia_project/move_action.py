@@ -142,6 +142,10 @@ class TakeableAction(Interaction):
     for attr in description.trait_names():
       if attr in ('trait_added', 'trait_modified'):
         continue
+#      if attr == 'automa_vp':
+#        setattr(self.description, attr, 
+#          getattr(self.description, attr) + getattr(description, attr))
+        
       if getattr(description, attr) not in ((), [], None, False, {}):
         setattr(self.description, attr, getattr(description, attr))
 
@@ -472,10 +476,9 @@ class TechupAction(TakeableAction):
   
 class MoveAction(TakeableAction):
   action_id = Enum('ACT1', 'ACT2', 'ACT3', 'ACT4', 'ACT5', 'ACT6', 'ACT7', 
-                   'ACT8', 'AUTOMA')
+                   'ACT8') 
 
   choices = Property
-
 
   def _get_desc(self):
     if self.action_id == 'ACT1':
@@ -513,9 +516,21 @@ class MoveAction(TakeableAction):
       return ['special_action', 'subsequent_effect']
     elif self.action_id == 'ACT8':
       return ['bonus_tile']
-    elif self.action_id == 'AUTOMA':
-      return []
 
+class AutomaAction(MoveAction):
+  automa_vp = Int
+  automa_pass = Bool
+  do_nothing = Bool
+
+  action_id = Enum('AUTOMA')
+
+  second_action = Instance(EventDescription, ())
+
+  def _get_choices(self):
+    return []
+
+  def __init__(self):
+    super().__init__(self, 'AUTOMA')
   
 class PassiveCharge(TakeableAction):
   action_id = Enum('PASSIVE_CHARGE')

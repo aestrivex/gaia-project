@@ -11,6 +11,10 @@ import numpy as np
 class Player(HasPrivateTraits):
   username = Str
 
+  intelligence = Enum('human', 'ai', 'automa')
+
+  automa = Instance(Automa)
+
   tiles = List(Instance(Tile))
   
   buildings = Dict(Str, Int)  
@@ -157,9 +161,9 @@ class Player(HasPrivateTraits):
     return income
 
   
-  available_special_actions = Property(depends_on = 'tiles, buildings')
+  possible_special_actions = Property(depends_on = 'tiles, buildings')
   @cached_property
-  def _get_available_special_actions(self):
+  def _get_possible_special_actions(self):
     sas = []
 
     if self.faction in ('Ivits', 'Firaks', 'Ambas') and self.pi_built:

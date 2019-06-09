@@ -2,6 +2,7 @@ from hexmap import Map
 from traits.api import (HasPrivateTraits, List, Instance, Int, Dict, Str, 
                        Tuple, Enum)
 
+from .move_action import Interaction
 from .player import Player
 from .tile import (FederationTile, TechTile, AdvancedTechTile, 
                    FinalScoringTile, RoundScoringTile, BonusTile)
@@ -30,6 +31,10 @@ class GameState(HasPrivateTraits):
   round_scoring_tiles = List(RoundScoringTile)
   bonus_tiles = List(Instance(BonusTile))
   bonus_tiles = Dict(Instance(BonusTile), Instance(Player))
+
+  power_actions_available = Dict(Instance(Interaction), Bool)
+  special_actions_available = Dict(Instance(Player), Dict(Instance(Interaction),
+                                                          Bool))
 
   buildings = Dict(Tuple, Tuple) #(x,y) -> (owner, type)
   lantid_shares = List(Tuple)
@@ -65,6 +70,14 @@ class GameState(HasPrivateTraits):
 
     self.sectors = cfg
     self.board_configuration = {}
+
+    self.available_power_actions = POWER_ACTIONS
+    self.available_special_actions = dict(zip(players, []*len(players)))
+    #initially populate special actions, need a way to automatically populate it
+    #when actions are added TODO trait notification
+    for player in players:
+      self.available_special_actions[player].extend(
+        player.possible_special_actions)
 
     for tile_placement in cfg:
       tx, ty = tile_placement
@@ -157,15 +170,37 @@ class GameState(HasPrivateTraits):
     lowest_tracks = []
     for track in self.tech_progress:
       value = self.tech_progress[track][player]
-
       if value < lowest_value:
         lowest_value = value
         lowest_tracks = [track]
-
       elif value == lowest_value:
         lowest_tracks.append(track)
-
     return lowest_tracks
+
+  def get_highest_track(self, player):
+    highest_value = 0
+    highest_tracks = []
+    for track in self.tech_progress:
+      value = self.tech_progress[track][player]
+      if value > highest_value:
+        highest_value = value
+        highest_tracks = [track]
+      elif value == highest_value:
+        highest_tracks.append(track)
+    return highest_tracks
+
+  def get_nonmaxed_tracks(self, player):
+    nonmaxed_tracks = []
+    for track in self.tech_progress:
+      if self.tech_progress[track][player] < 5:
+        nonmaxed_tracks.append(track) 
+    return nonmaxed_tracks
+
+  def is_track_maxed_by_somebody(self, track):
+    for player in self.players:
+      if self.tech_progress[track][player] == 5:
+        return True
+    return False
 
   def in_navigation_range(self, player, coordinates, bonus=0):
     return self._navigate(player, coordinates)[0]
@@ -246,7 +281,35 @@ class GameState(HasPrivateTraits):
     return collection_height
 
   def is_collection_contiguous(self, coords):
-    collection_
+    #TODO
+    NotImplemented
+
+  def get_all_buildings_of_type_from_player(self, player, building_type):
+    player_buildings = []
+    for loc in self.buildings:
+      if self.buildings[loc][0] == player:
+        if self.buildings[loc][1] == building_type:
+          player_buildings.append(loc)
+    return player_buildings
+
+  def closest_buliding_of_type_to_any_other_player(self, player, bulding_type):
+    buildings = self.get_all_buildings_of_type_from_player(player, building_type)
+
+    for building in buildings:
+      
+      #get distance to any other player
+
+  def min_distance_to_any_other_player(self, player, coordinates):
+    min_dist = np.inf
+
+    for loc in self.buildings:
+      if self.buildings[loc][0] != player
+        dist = self.map.distance(loc, coordinates)
+        if dist < min_dist:
+          min_dist = dist
+
+    return min_dist
+    
 
   def get_num_gaias(self, player):
     n_gaia = 0

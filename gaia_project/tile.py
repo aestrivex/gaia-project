@@ -96,6 +96,7 @@ class AdvancedTechTile(TechTile):
                 'ADV7', 'ADV8', 'ADV9', 'ADV10', 'ADV11', 'ADV12',
                 'ADV13', 'ADV14', 'ADV15')
 
+  available = Bool
   replaced = Either(None, Instance(TechTile))
 
   def _get_desc(self):

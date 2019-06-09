@@ -54,7 +54,7 @@ class Engine(HasPrivateTraits):
       for player in self.game_state.turn_order:
 
         while True:
-          move = self.clayer.make_move(player)
+          move = self.clayer.make_move(player, self.game_state)
   
           if not issubclass(type(move), TakeableAction):
             continue
@@ -64,7 +64,11 @@ class Engine(HasPrivateTraits):
             break
         
   def run_cleanup(self):
-    pass
+    for action in self.game_states.available_power_actions:
+      action.available = True
+
+    for action in self.game_states.available_special_actions:
+      action.available = True
 
   def _initial_placement_helper(self, player, move):
     while True:
@@ -211,8 +215,10 @@ class Engine(HasPrivateTraits):
     return True, None
 
   def is_move_legal(self, player, move):
-
     desc = move.description
+
+    if move.action_id == 'AUTOMA':
+      return True
 
     #ACTION 1
     if move.action_id == 'ACT1':
@@ -279,7 +285,7 @@ class Engine(HasPrivateTraits):
         explanation = 'No tech track selected'
         return False, explanation
 
-      if self.game_state.tech_progress[desc.tech_track][player] == 5:
+      if self.game_state.is_track_maxed_by_somebody(desc.tech_track):
         explanation = 'Tech track is already maxed'
         return False, explanation
           
@@ -297,7 +303,7 @@ class Engine(HasPrivateTraits):
         explanation = "Power action already taken"
         return False, explanation
       if not player.can_afford(desc.power_action.cost):
-        explanation = "Not enough power"
+        explanation = "Not enough power/qubits"
         return False, explanation
 
     #ACTION 7 
@@ -578,7 +584,7 @@ class Engine(HasPrivateTraits):
       explanation = 'You already have a copy of that tile but replaced it'
       return False, explanation
 
-    if self.game_state.tech_progress[desc.tech_track][player] == 5:
+    if self.game_state.is_track_maxed_by_somebody(desc.tech_track):
       explanation = 'Tech track is already maxed'
       return False, explanation
         
@@ -670,11 +676,15 @@ class Engine(HasPrivateTraits):
     if move.action_id == 'ACT6':
       desc.power_action.description = desc
       self.execute_move(player, desc.power_action)
+      desc.power_action.available = False
+      self.game_state.power_actions_available[desc.power_action] = False
 
     #ACTION 7
     if move.action_id == 'ACT7':
       desc.special_action.description = desc
       self.execute_move(player, desc.special_action)
+      desc.special_action.available = False
+      self.game_state.special_actions_available[player][desc.special_action] = False
 
     #ACTION 8
     if move.action_id == 'ACT8':
@@ -852,10 +862,12 @@ class Engine(HasPrivateTraits):
   def execute_obtain_tech_tile(self, player, move):
     desc = move.description    
 
+    self.game_state.advanced_tech_tiles
     player.tiles.append(desc.tech_tile_choice)
     self.game_state.tech_progress[desc.tech_track][player] += 1
     
     if desc.tech_replace_choice is not None:
+      desc.tech_tile_choice.available = False
       desc.tech_tile_choice.replaced = desc.tech_replace_choice
       player.tiles.remove(desc.tech_replace_choice)
 

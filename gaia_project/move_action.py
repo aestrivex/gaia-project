@@ -95,11 +95,11 @@ class EventDescription(HasPrivateTraits):
   #the federation token picked in ACT5 or ACT6:QA2
   federation_choice = Instance(FederationTile)
 
-  #the technology tile picked in ACT3:RL, ACT3:AC, or ACT6:QA1
+  #the technology tile picked in ACT3:RL, ACT3:AC, or ACT6:QA1 or ITAR:SPEC
   tech_tile_choice = Instance(TechTile)
 
   #the technology tile to replace with an advanced tech tile pick
-  #in ACT3:RL, ACT3:AC or ACT6:QA1
+  #in ACT3:RL, ACT3:AC or ACT6:QA1 or ITAR:SPEC
   tech_replace_choice = Instance(TechTile)
 
   #which power tokens to utilize in ACT2, ACT4, SPEC_BON5
@@ -472,7 +472,7 @@ class TechupAction(TakeableAction):
   
 class MoveAction(TakeableAction):
   action_id = Enum('ACT1', 'ACT2', 'ACT3', 'ACT4', 'ACT5', 'ACT6', 'ACT7', 
-                   'ACT8')
+                   'ACT8', 'AUTOMA')
 
   choices = Property
 
@@ -513,6 +513,8 @@ class MoveAction(TakeableAction):
       return ['special_action', 'subsequent_effect']
     elif self.action_id == 'ACT8':
       return ['bonus_tile']
+    elif self.action_id == 'AUTOMA':
+      return []
 
   
 class PassiveCharge(TakeableAction):

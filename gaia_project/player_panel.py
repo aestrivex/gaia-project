@@ -381,7 +381,7 @@ class PlayerPanel(HasPrivateTraits):
             return EventDescription(upgrade=self.choice_options[j])
           elif self.choice_type == 'special_action':
             return EventDescription(
-              special_action=self.player.available_special_actions[j])
+              special_action=self.player.possible_special_actions[j])
           elif self.choice_type == 'bonus_tile':
             return EventDescription(
               bonus_tile=list(
@@ -472,7 +472,7 @@ class PlayerPanel(HasPrivateTraits):
       cs = ['planetary institute', 'research lab', 'action academy', 
                  'knowledge academy']
     elif self.choice_type == 'special_action':
-      cs = map(describe, self.player.available_special_actions)
+      cs = map(describe, self.player.possible_special_actions)
     elif self.choice_type == 'bonus_tile':
       cs = map(describe, filter(lambda tile: self.bonus_tiles[tile] is None,
                                   self.bonus_tiles))

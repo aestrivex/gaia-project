@@ -55,14 +55,27 @@ class LocalCommunicationLayer(CommunicationLayer):
                               pygame.VIDEORESIZE))
     
 
-  def make_move(self, player):
+  def make_move(self, player, game_state):
     # set the layout to have the current player panel showing
-    self.layout.player_panel = self.player_panels[player]
-    self.layout.player_panel.hide_choice()
-    self.update_gfx()
 
-    move = self.process_events() 
-    return move
+    if player.intelligence == 'human':
+
+      self.layout.player_panel = self.player_panels[player]
+      self.layout.player_panel.hide_choice()
+      self.update_gfx()
+  
+      move = self.process_events() 
+
+      return move
+
+    elif player.intelligence == 'automa':
+      move = player.automa.make_move(player, game_state)
+
+    elif player.intelligence == 'ai':
+      raise NotImplementedError
+
+    else:
+      raise NotImplemented
 
   def make_choice(self, player, choice, move):
     self.layout.player_panel = self.player_panels[player]

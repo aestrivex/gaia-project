@@ -136,11 +136,23 @@ class LocalCommunicationLayer(CommunicationLayer):
   def techup(self, player, tech_track):
     self.tech_board.techup(player.color, tech_track)
 
-  def give_tile_to_player(self, player, tile):
+  def update_state(self, game_state):
+    #TODO maybe just do everything at once
     pass
 
-  def remove_tile_from_player(self, player, tile):
-    pass
+    #bonus tiles
+
+    #turn order
+    
+    #advanced tech tiles
+
+    #terraforming fed
+
+    #available feds
+
+    #available actions
+
+    #misc info e.g. score
 
   def update_gfx(self):
     self.layout.paint()

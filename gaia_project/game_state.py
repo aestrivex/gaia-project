@@ -32,8 +32,9 @@ class GameState(HasPrivateTraits):
   bonus_tiles = Dict(Instance(BonusTile), Instance(Player))
 
   power_actions_available = Dict(Instance(Interaction), Bool)
-  special_actions_available = Dict(Instance(Player), Dict(Instance(Interaction),
-                                                          Bool))
+  special_actions_available = Dict(Instance(Player), 
+                                            Dict(Instance(Interaction),
+                                            Bool))
 
   buildings = Dict(Tuple, Tuple) #(x,y) -> (owner, type)
   lantid_shares = List(Tuple)
@@ -73,7 +74,7 @@ class GameState(HasPrivateTraits):
     self.power_actions_available = dict(zip( POWER_ACTIONS, 
                                              [True]*(len(POWER_ACTIONS)) ))
     self.special_actions_available = dict(zip( players, [{}]*len(players) ))
-    #initially populate special actions, need a way to automatically populate it
+    #initially populate special actions, need a way to automatically populate 
     #when actions are added TODO trait notification
     for player in players:
       self.special_actions_available[player].update(

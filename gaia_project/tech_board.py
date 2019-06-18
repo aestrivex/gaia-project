@@ -33,11 +33,12 @@ class TechBoardRender(pygame.Surface):
 
     pygame.font.init()
 
-  def update_state(self, advanced_tech_tiles, player_techs,
+  def update_state(self, advanced_tech_tiles, player_techs, 
                    terraforming_federation=None):
     self.advanced_tech_tiles = advanced_tech_tiles
     self.player_techs = player_techs
     self.terraforming_federation = terraforiming_federation
+    #TODO add available power actions
 
   def draw(self):
     #draw the grid
@@ -318,9 +319,14 @@ class TechBoard( HasPrivateTraits ):
     else:
       return EventDescription(tech_track = TECH_ORDER[x_box])
 
-
   def techup(color, tech_track): 
     self.player_techs[tech_track][color] += 1
+
+  def update():
+    self.render.update_state(self.advanced_tech_tiles,
+                             self.player_techs,
+                             self.terraforming_federation)
+    #TODO tech board needs to show power actions available
 
 
 if __name__ == '__main__':

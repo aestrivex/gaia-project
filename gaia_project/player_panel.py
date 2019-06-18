@@ -528,3 +528,10 @@ class PlayerPanel(HasPrivateTraits):
                               None,
                               self.choice_options)
     
+
+  def update(self, game_state):
+    self.update_state(self.bonus_tiles,
+                      self.round_scoring, 
+                      self.available_federations)
+
+    #TODO needs available special actions

@@ -128,8 +128,8 @@ class TakeableAction(Interaction):
   def _get_long_desc(self):
     return self.desc
 
-  def __init__(self, action_id):
-    super().__init__()
+  def __init__(self, action_id, *args, **kwargs):
+    super().__init__(*args, **kwargs)
     self.action_id = action_id
 
   def __str__(self):
@@ -400,24 +400,28 @@ class TechupAction(TakeableAction):
                     'gaiaforming', 'economy', 'science')
   tech_level = Enum(1,2,3,4,5)
 
-  action_id = Property
-  def _get_action_id(self):
+  _possible_action_ids = List(['TECHUP_{0}_{1}'.format(x,y)
+                       for x in ('TERR', 'NAV', 'AI', 'GAIA', 'ECON', 'SCI')
+                       for y in range(1,6)])
+  action_id = Enum('TECHUP_TERR_1', values='_possible_action_ids')
+
+  def _determine_action_id(self, tech_track, tech_level):
     aid = 'TECHUP_'
 
-    if self.tech_track == 'terraforming':
+    if tech_track == 'terraforming':
       aid += 'TERR'
-    elif self.tech_track == 'navigation':
+    elif tech_track == 'navigation':
       aid += 'NAV'
-    elif self.tech_track == 'AI':
+    elif tech_track == 'AI':
       aid += 'AI'
-    elif self.tech_track == 'gaiaforming':
+    elif tech_track == 'gaiaforming':
       aid += 'GAIA'
-    elif self.tech_track == 'economy':
+    elif tech_track == 'economy':
       aid += 'ECON'
-    elif self.tech_track == 'science':
+    elif tech_track == 'science':
       aid += 'SCI'
 
-    aid += str(tech_level)
+    aid += '_{0}'.format(str(tech_level))
 
     return aid
 
@@ -470,6 +474,13 @@ class TechupAction(TakeableAction):
       return Effect(immediate={'knowledge' : 9}, income={})
     else:
       return Effect()
+
+  def __init__(self, tech_track, tech_level, *args, **kwargs):
+    super().__init__(self._determine_action_id(tech_track, tech_level), 
+                   *args, **kwargs)
+    self.tech_track = tech_track
+    self.tech_level = tech_level
+
 
 
   
@@ -529,8 +540,8 @@ class AutomaAction(MoveAction):
   def _get_choices(self):
     return []
 
-  def __init__(self):
-    super().__init__(self, 'AUTOMA')
+  def __init__(self, *args, **kwargs):
+    super().__init__(self, 'AUTOMA', *args, **kwargs)
   
 class PassiveCharge(TakeableAction):
   action_id = Enum('PASSIVE_CHARGE')

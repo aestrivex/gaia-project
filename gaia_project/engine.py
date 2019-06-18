@@ -631,10 +631,12 @@ class Engine(HasPrivateTraits):
     #ACTION 1
     if move.action_id == 'ACT1':
       self.execute_build_mine(player, move)
+      clayer.update_game_state(self.game_state)
 
     #ACTION 2
     if move.action_id == 'ACT2':
       self.execute_gaiaform(player, move)
+      clayer.update_game_state(self.game_state)
 
     #ACTION 3
     if move.action_id == 'ACT3':
@@ -662,14 +664,17 @@ class Engine(HasPrivateTraits):
 
       self.player.buildings[cur_building_type] += 1
       self.player.bulidings[building_type] -= 1
+      clayer.update_game_state(self.game_state)
 
     #ACTION 4
     if move.action_id == 'ACT4':
       pass
+      clayer.update_game_state(self.game_state)
 
     #ACTION 5
     if move.action_id == 'ACT5':
       self.execute_techup(player, move) 
+      clayer.update_game_state(self.game_state)
 
     #ACTION 6
     if move.action_id == 'ACT6':
@@ -677,13 +682,16 @@ class Engine(HasPrivateTraits):
       self.execute_move(player, desc.power_action)
       desc.power_action.available = False
       self.game_state.power_actions_available[desc.power_action] = False
+      self.update_game_state(self.game_state)
 
     #ACTION 7
     if move.action_id == 'ACT7':
       desc.special_action.description = desc
       self.execute_move(player, desc.special_action)
       desc.special_action.available = False
-      self.game_state.special_actions_available[player][desc.special_action] = False
+      dsa = desc.special_action
+      self.game_state.special_actions_available[player][dsa] = False
+      clayer.update_game_state(self.game_state)
 
     #ACTION 8
     if move.action_id == 'ACT8':
@@ -707,6 +715,8 @@ class Engine(HasPrivateTraits):
       self.game_state.turn_order.remove(player)
 
       self.execute_effect(player, desc.bonus_tile.effect)
+
+      clayer.update_game_state(self.game_state)
 
     #POWER ACTION 2
     if move.action_id == 'PA2':
@@ -878,15 +888,16 @@ class Engine(HasPrivateTraits):
     tech_track = desc.tech_track
     tech_level = self.game_state.tech_progress[desc.tech_track][player] + 1
 
-    execute_when_techup_effects(player)
+    self.execute_when_techup_effects(player)
      
-    techup_action = TechupAction(tech_track=tech_track, tech_level=tech_level)
+    techup_action = TechupAction(tech_track, tech_level)
 
     if tech_track in ('economy', 'science') and 1 <= tech_level <= 4:
       assert(len(techup_action.effect.income) > 0)
       player.tech_income[desc.tech_track] = techup_action.effect.income
 
     self.execute_move(player, techup_action)
+    clayer.techup(player, tech_track)
 
   def execute_effect(self, player, effect, n_times=1):
     if 'per' in effect.immediate:

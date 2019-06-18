@@ -233,7 +233,8 @@ class Automa(HasPrivateTraits):
       if player.buildings[upgrade_to] == 0:
         continue
       froms = self.game_state.get_all_buildings_of_type_from_player(player, 
-                                                                   upgrade_from)          if len(froms) == 0:
+                                                                   upgrade_from)
+      if len(froms) == 0:
         continue
       any_valid_upgrade_found = True
       break
@@ -307,9 +308,9 @@ class Automa(HasPrivateTraits):
       elif self.support_card.support_endgame_scoring == 'bottom':
         final_scoring_tile = game_state.final_scoring_tiles[1]
     else:
-      if np.random.rand() < .12
+      if np.random.rand() < .12:
         final_scoring_tile = None
-      elif np.random.rand() > .5
+      elif np.random.rand() > .5:
         final_scoring_tile = game_state.final_scoring_tiles[0]
       else:
         final_scoring_tile = game_state.final_scoring_tiles[1]

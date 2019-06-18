@@ -298,7 +298,7 @@ class GameState(HasPrivateTraits):
           contigs.add(loc)
           contigs.add(coordinates)
 
-    return len(contigs) == len(coords):
+    return len(contigs) == len(coords)
 
   def get_all_buildings_of_type_from_player(self, player, building_type):
     player_buildings = []
@@ -326,7 +326,7 @@ class GameState(HasPrivateTraits):
     min_dist = np.inf
 
     for loc in self.buildings:
-      if self.buildings[loc][0] != player
+      if self.buildings[loc][0] != player:
         dist = self.map.distance(loc, coordinates)
         if dist < min_dist:
           min_dist = dist

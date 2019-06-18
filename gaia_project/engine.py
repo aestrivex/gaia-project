@@ -38,7 +38,6 @@ class Engine(HasPrivateTraits):
 
     self.scoring()
 
-
   def run_income(self):
     pass
 

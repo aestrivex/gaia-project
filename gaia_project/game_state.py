@@ -1,13 +1,13 @@
 from hexmap import Map
 from traits.api import (HasPrivateTraits, List, Instance, Int, Dict, Str, 
-                       Tuple, Enum)
+                       Tuple, Enum, Bool)
 
 from .move_action import Interaction
 from .player import Player
 from .tile import (FederationTile, TechTile, AdvancedTechTile, 
                    FinalScoringTile, RoundScoringTile, BonusTile)
 from .constants import (BASIC_4P_SETUP, BUILDING_HEIGHTS, STARTING_TECHS,
-                        TECH_ORDER)
+                        TECH_ORDER, POWER_ACTIONS)
 
 import numpy as np
 
@@ -70,12 +70,13 @@ class GameState(HasPrivateTraits):
     self.sectors = cfg
     self.board_configuration = {}
 
-    self.available_power_actions = POWER_ACTIONS
-    self.available_special_actions = dict(zip(players, []*len(players)))
+    self.power_actions_available = dict(zip( POWER_ACTIONS, 
+                                             [True]*(len(POWER_ACTIONS)) ))
+    self.special_actions_available = dict(zip( players, [{}]*len(players) ))
     #initially populate special actions, need a way to automatically populate it
     #when actions are added TODO trait notification
     for player in players:
-      self.available_special_actions[player].extend(
+      self.special_actions_available[player].update(
         player.possible_special_actions)
 
     for tile_placement in cfg:

@@ -2,7 +2,7 @@ from traits.api import (HasPrivateTraits, List, Instance, Enum, Int, Bool,
                         Range,
                        )
 
-from .automa_card import AUTOMA_CARDS, FACTION_CARDS
+from .automa_card import AUTOMA_CARDS, FACTION_CARDS, AutomaCard
 from .constants import TECH_ORDER, POWER_ACTIONS
 from .move_action import AutomaAction, EventDescription
 
@@ -21,7 +21,7 @@ class Automa(HasPrivateTraits):
   deck = List(Instance(AutomaCard)) 
 
   action_card = Instance(AutomaCard)
-  support_card = Instance(SupportCard)
+  support_card = Instance(AutomaCard)
 
   use_supports = Bool
 

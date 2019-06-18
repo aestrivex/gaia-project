@@ -13,7 +13,8 @@ class AutomaCard(HasPrivateTraits):
   support_numbered_selection_number = Int
   support_numbered_selection_direction = Enum('left', 'right')
   action = Enum('faction_action', 'build', 'upgrade', 'advance_highest',
-                'advance_random', 'power_or_qic_action')
+                'advance_random', 'power_or_qic_action', 'firaks_upgrade',
+                'advance_gaia')
   vp = Int
 
   setup_bonus = Range(0, 4)

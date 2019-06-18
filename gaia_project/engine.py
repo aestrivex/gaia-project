@@ -63,10 +63,10 @@ class Engine(HasPrivateTraits):
             break
         
   def run_cleanup(self):
-    for action in self.game_states.available_power_actions:
+    for action in self.game_states.power_actions_available:
       action.available = True
 
-    for action in self.game_states.available_special_actions:
+    for action in self.game_states.special_actions_available:
       action.available = True
 
   def _initial_placement_helper(self, player, move):

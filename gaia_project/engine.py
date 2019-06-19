@@ -66,8 +66,10 @@ class Engine(HasPrivateTraits):
     for action in self.game_state.power_actions_available:
       action.available = True
 
-    for action in self.game_state.special_actions_available:
-      action.available = True
+    for player in self.game_state.special_actions_available:
+      actions = self.game_state.special_actions_available[player]
+      for action in actions:
+        action.available = True
 
   def _initial_placement_helper(self, player, move):
     while True:

@@ -19,6 +19,7 @@ class PlayerPanelRender(pygame.Surface):
   def __init__(self, width, height, player, other_players, bonus_tiles, 
                round_scoring, 
                final_scoring, available_federations,
+               special_actions,
                *args, **kwargs):
     super().__init__((width, height), *args, **kwargs)
     self.width = width
@@ -33,6 +34,7 @@ class PlayerPanelRender(pygame.Surface):
     self.final_scoring = final_scoring
     self.available_federations = available_federations
 
+    self.special_actions = special_actions 
 
     self.ctype = None
     self.cinstr = ''
@@ -241,6 +243,8 @@ class PlayerPanel(HasPrivateTraits):
 
   available_federations = Dict(Instance(FederationTile), Int)
 
+  special_actions = List(Instance(Interaction))
+
   choice_type = Enum(None, 'building_upgrade', 'special_action', 'bonus_tile',
                      'which_federation_owned', 'which_federation_supply',
                      'which_power_tokens', 'tech_replace',
@@ -299,10 +303,13 @@ class PlayerPanel(HasPrivateTraits):
                                                        for i in range(1, 7)],
                                             [2, 3, 3, 3, 3, 3]))
 
+    self.special_actions = player.possible_special_actions
+
     self.render = PlayerPanelRender(width, height, player, self.other_players,
                                     self.bonus_tiles,
                                     self.round_scoring, self.final_scoring,
-                                    self.available_federations)
+                                    self.available_federations,
+                                    self.special_actions)
 
   def _width_changed(self):
     if self.render is not None:
@@ -381,7 +388,7 @@ class PlayerPanel(HasPrivateTraits):
             return EventDescription(upgrade=self.choice_options[j])
           elif self.choice_type == 'special_action':
             return EventDescription(
-              special_action=self.player.possible_special_actions[j])
+              special_action=self.special_actions[j])
           elif self.choice_type == 'bonus_tile':
             return EventDescription(
               bonus_tile=list(
@@ -472,7 +479,7 @@ class PlayerPanel(HasPrivateTraits):
       cs = ['planetary institute', 'research lab', 'action academy', 
                  'knowledge academy']
     elif self.choice_type == 'special_action':
-      cs = map(describe, self.player.possible_special_actions)
+      cs = map(describe, self.special_actions)
     elif self.choice_type == 'bonus_tile':
       cs = map(describe, filter(lambda tile: self.bonus_tiles[tile] is None,
                                   self.bonus_tiles))
@@ -534,4 +541,9 @@ class PlayerPanel(HasPrivateTraits):
                       self.round_scoring, 
                       self.available_federations)
 
-    #TODO needs available special actions
+  def update_special_actions(actions):
+    self.special_actions = list(filter(lambda x:actions[x], actions))
+    self.render.special_actions = self.special_actions
+
+  def update_bonus_tiles(tiles):
+    self.bonus_tiles = self.render.bonus_tiles = tiles

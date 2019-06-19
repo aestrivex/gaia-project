@@ -321,13 +321,12 @@ class TechBoard( HasPrivateTraits ):
 
   def techup(color, tech_track): 
     self.player_techs[tech_track][color] += 1
+    self.render.player_techs = self.player_techs
 
-  def update():
-    self.render.update_state(self.advanced_tech_tiles,
-                             self.player_techs,
-                             self.terraforming_federation)
-    #TODO tech board needs to show power actions available
-
+  def update_power_actions(available_power_actions):
+    for action in self.power_actions:
+      action.available = available_power_actions[action]
+    self.render.power_actions = self.power_actions
 
 if __name__ == '__main__':
   b = TechBoard([], [])

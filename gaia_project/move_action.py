@@ -11,6 +11,12 @@ class Interaction(HasPrivateTraits):
   def _get_desc(self):
     return ''
 
+  def __eq__(self, other):
+    self.action_id == other.action_id
+
+  def __hash__(self):
+    return hash(self.action_id)
+
   def __init__(self, action_id=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
 

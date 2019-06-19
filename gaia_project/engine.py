@@ -631,12 +631,12 @@ class Engine(HasPrivateTraits):
     #ACTION 1
     if move.action_id == 'ACT1':
       self.execute_build_mine(player, move)
-      clayer.update_game_state(self.game_state)
+      clayer.update_available_buildings(player)
 
     #ACTION 2
     if move.action_id == 'ACT2':
       self.execute_gaiaform(player, move)
-      clayer.update_game_state(self.game_state)
+      clayer.update_available_buildings(player)
 
     #ACTION 3
     if move.action_id == 'ACT3':
@@ -669,12 +669,11 @@ class Engine(HasPrivateTraits):
     #ACTION 4
     if move.action_id == 'ACT4':
       pass
-      clayer.update_game_state(self.game_state)
+      clayer.update_available_feds( self.game_state.federations_in_supply )
 
     #ACTION 5
     if move.action_id == 'ACT5':
       self.execute_techup(player, move) 
-      clayer.update_game_state(self.game_state)
 
     #ACTION 6
     if move.action_id == 'ACT6':
@@ -682,7 +681,8 @@ class Engine(HasPrivateTraits):
       self.execute_move(player, desc.power_action)
       desc.power_action.available = False
       self.game_state.power_actions_available[desc.power_action] = False
-      self.update_game_state(self.game_state)
+      paa = self.game_state.power_actions_available
+      clayer.update_available_power_actions( paa )
 
     #ACTION 7
     if move.action_id == 'ACT7':
@@ -691,7 +691,8 @@ class Engine(HasPrivateTraits):
       desc.special_action.available = False
       dsa = desc.special_action
       self.game_state.special_actions_available[player][dsa] = False
-      clayer.update_game_state(self.game_state)
+      saa = self.game_state.special_actions_available
+      clayer.update_available_special_actions( player, saa )
 
     #ACTION 8
     if move.action_id == 'ACT8':
@@ -716,7 +717,8 @@ class Engine(HasPrivateTraits):
 
       self.execute_effect(player, desc.bonus_tile.effect)
 
-      clayer.update_game_state(self.game_state)
+      clayer.update_bonus_tiles( self.game_state.bonus_tiles)
+      clayer.update_turn_order( self.game_state.next_turn_order )
 
     #POWER ACTION 2
     if move.action_id == 'PA2':

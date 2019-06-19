@@ -136,23 +136,34 @@ class LocalCommunicationLayer(CommunicationLayer):
   def techup(self, player, tech_track):
     self.tech_board.techup(player.color, tech_track)
 
-  def update_state(self, game_state):
-    #TODO maybe just do everything at once
+  def update_available_buildings(self, player):
     pass
 
-    #bonus tiles
+  def update_bonus_tiles(self, tiles):
+    for panel in self.player_panels:
+      panel.update_bonus_tiles(tiles)
 
-    #turn order
+  def update_turn_order(self, next_order):
+    pass
     
-    #advanced tech tiles
+  def update_advanced_tech_tiles(self, tiles):
+    pass
 
-    #terraforming fed
+  def update_terraforming_fed(self, fed):
+    pass
 
-    #available feds
+  def update_available_feds(self, feds):
+    pass
 
-    #available actions
+  def update_available_power_actions(self, power_actions):
+    self.tech_board.update_power_actions(power_actions)
 
-    #misc info e.g. score
+  def update_available_special_actions(self, player, spec_actions):
+    panel = self.player_panels[player]
+    panel.update_special_actions( spec_actions[player] )
+
+  def update_misc_info(self, score):
+    pass
 
   def update_gfx(self):
     self.layout.paint()

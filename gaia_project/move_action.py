@@ -12,7 +12,9 @@ class Interaction(HasPrivateTraits):
     return ''
 
   def __eq__(self, other):
-    self.action_id == other.action_id
+    if not type(self) == type(other):
+      return False
+    return self.action_id == other.action_id
 
   def __hash__(self):
     return hash(self.action_id)

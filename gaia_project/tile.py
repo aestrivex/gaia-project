@@ -24,6 +24,15 @@ class Tile(HasPrivateTraits):
   def __repr__(self):
     return self.__str__()
 
+  def __eq__(self, other):
+    if not type(self) == type(other):
+      return False
+    return self.tile_id == other.tile_id
+
+  def __hash__(self):
+    return hash(self.tile_id)
+    
+
 class ObtainableTile(Tile):
   owner = Any
 

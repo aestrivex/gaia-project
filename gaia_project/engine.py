@@ -617,6 +617,11 @@ class Engine(HasPrivateTraits):
       self.clayer.add_building(player, xy, building_type)
 
     if move.action_id == 'INITIAL_BONUS':
+      print('HATTUSA{0}'.format(
+        desc.bonus_tile in self.game_state.bonus_tiles))
+      for bonus_tile in self.game_state.bonus_tiles:
+        print('YONKERS{0}{1}{2}'.format(bonus_tile, desc.bonus_tile, desc.bonus_tile == bonus_tile))
+
       self.game_state.bonus_tiles[desc.bonus_tile] = player
       player.tiles.append(desc.bonus_tile)
 

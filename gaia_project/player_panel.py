@@ -481,6 +481,8 @@ class PlayerPanel(HasPrivateTraits):
     elif self.choice_type == 'special_action':
       cs = map(describe, self.special_actions)
     elif self.choice_type == 'bonus_tile':
+      print(self.bonus_tiles)
+
       cs = map(describe, filter(lambda tile: self.bonus_tiles[tile] is None,
                                   self.bonus_tiles))
     elif self.choice_type == 'which_federation_owned':
@@ -541,9 +543,9 @@ class PlayerPanel(HasPrivateTraits):
                       self.round_scoring, 
                       self.available_federations)
 
-  def update_special_actions(actions):
+  def update_special_actions(self, actions):
     self.special_actions = list(filter(lambda x:actions[x], actions))
     self.render.special_actions = self.special_actions
 
-  def update_bonus_tiles(tiles):
+  def update_bonus_tiles(self, tiles):
     self.bonus_tiles = self.render.bonus_tiles = tiles

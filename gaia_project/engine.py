@@ -63,10 +63,10 @@ class Engine(HasPrivateTraits):
             break
         
   def run_cleanup(self):
-    for action in self.game_states.power_actions_available:
+    for action in self.game_state.power_actions_available:
       action.available = True
 
-    for action in self.game_states.special_actions_available:
+    for action in self.game_state.special_actions_available:
       action.available = True
 
   def _initial_placement_helper(self, player, move):
@@ -621,6 +621,8 @@ class Engine(HasPrivateTraits):
       player.tiles.append(desc.bonus_tile)
 
       self.execute_effect(player, desc.bonus_tile.effect)
+      self.clayer.update_bonus_tiles( self.game_state.bonus_tiles )
+      
 
   def execute_move(self, player, move):
     desc = move.description    
@@ -631,12 +633,12 @@ class Engine(HasPrivateTraits):
     #ACTION 1
     if move.action_id == 'ACT1':
       self.execute_build_mine(player, move)
-      clayer.update_available_buildings(player)
+      self.clayer.update_available_buildings(player)
 
     #ACTION 2
     if move.action_id == 'ACT2':
       self.execute_gaiaform(player, move)
-      clayer.update_available_buildings(player)
+      self.clayer.update_available_buildings(player)
 
     #ACTION 3
     if move.action_id == 'ACT3':
@@ -664,12 +666,13 @@ class Engine(HasPrivateTraits):
 
       self.player.buildings[cur_building_type] += 1
       self.player.bulidings[building_type] -= 1
-      clayer.update_game_state(self.game_state)
+      self.clayer.update_game_state(self.game_state)
 
     #ACTION 4
     if move.action_id == 'ACT4':
       pass
-      clayer.update_available_feds( self.game_state.federations_in_supply )
+      self.clayer.update_available_feds( 
+        self.game_state.federations_in_supply )
 
     #ACTION 5
     if move.action_id == 'ACT5':
@@ -682,7 +685,7 @@ class Engine(HasPrivateTraits):
       desc.power_action.available = False
       self.game_state.power_actions_available[desc.power_action] = False
       paa = self.game_state.power_actions_available
-      clayer.update_available_power_actions( paa )
+      self.clayer.update_available_power_actions( paa )
 
     #ACTION 7
     if move.action_id == 'ACT7':
@@ -692,7 +695,7 @@ class Engine(HasPrivateTraits):
       dsa = desc.special_action
       self.game_state.special_actions_available[player][dsa] = False
       saa = self.game_state.special_actions_available
-      clayer.update_available_special_actions( player, saa )
+      self.clayer.update_available_special_actions( player, saa )
 
     #ACTION 8
     if move.action_id == 'ACT8':
@@ -717,8 +720,8 @@ class Engine(HasPrivateTraits):
 
       self.execute_effect(player, desc.bonus_tile.effect)
 
-      clayer.update_bonus_tiles( self.game_state.bonus_tiles)
-      clayer.update_turn_order( self.game_state.next_turn_order )
+      self.clayer.update_bonus_tiles( self.game_state.bonus_tiles)
+      self.clayer.update_turn_order( self.game_state.next_turn_order )
 
     #POWER ACTION 2
     if move.action_id == 'PA2':
@@ -899,7 +902,7 @@ class Engine(HasPrivateTraits):
       player.tech_income[desc.tech_track] = techup_action.effect.income
 
     self.execute_move(player, techup_action)
-    clayer.techup(player, tech_track)
+    self.clayer.techup(player, tech_track)
 
   def execute_effect(self, player, effect, n_times=1):
     if 'per' in effect.immediate:

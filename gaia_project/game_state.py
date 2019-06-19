@@ -113,7 +113,7 @@ class GameState(HasPrivateTraits):
       self.bonus_tiles = bonus_tiles
     else:
       self.bonus_tiles = dict(zip([BonusTile('BON{0}'.format(i)) for 
-                                            i in range(1, 7)],
+                                            i in range(1, len(players)+4)],
                                   [None]*6))
 
     if round_scoring is not None:

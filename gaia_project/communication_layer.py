@@ -140,7 +140,8 @@ class LocalCommunicationLayer(CommunicationLayer):
     pass
 
   def update_bonus_tiles(self, tiles):
-    for panel in self.player_panels:
+    for player in self.player_panels:
+      panel = self.player_panels[player]
       panel.update_bonus_tiles(tiles)
 
   def update_turn_order(self, next_order):

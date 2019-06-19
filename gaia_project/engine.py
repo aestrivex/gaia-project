@@ -31,12 +31,13 @@ class Engine(HasPrivateTraits):
     self.initial_placements()
 
     for round_n in range(1, 7):
+      print('ROUND {0}'.format(round_n))
       self.run_income()
       self.run_gaia()
       self.run_action()
       self.run_cleanup()
 
-    self.scoring()
+  #TODO execute final scoring
 
   def run_income(self):
     pass
@@ -70,6 +71,11 @@ class Engine(HasPrivateTraits):
       actions = self.game_state.special_actions_available[player]
       for action in actions:
         action.available = True
+  
+    self.game_state.turn_order = self.game_state.next_turn_order
+    self.game_state.next_turn_order = []
+
+    #TODO execute round scoring
 
   def _initial_placement_helper(self, player, move):
     while True:
@@ -619,11 +625,6 @@ class Engine(HasPrivateTraits):
       self.clayer.add_building(player, xy, building_type)
 
     if move.action_id == 'INITIAL_BONUS':
-      print('HATTUSA{0}'.format(
-        desc.bonus_tile in self.game_state.bonus_tiles))
-      for bonus_tile in self.game_state.bonus_tiles:
-        print('YONKERS{0}{1}{2}'.format(bonus_tile, desc.bonus_tile, desc.bonus_tile == bonus_tile))
-
       self.game_state.bonus_tiles[desc.bonus_tile] = player
       player.tiles.append(desc.bonus_tile)
 

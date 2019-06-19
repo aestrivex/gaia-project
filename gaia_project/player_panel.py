@@ -481,8 +481,6 @@ class PlayerPanel(HasPrivateTraits):
     elif self.choice_type == 'special_action':
       cs = map(describe, self.special_actions)
     elif self.choice_type == 'bonus_tile':
-      print(self.bonus_tiles)
-
       cs = map(describe, filter(lambda tile: self.bonus_tiles[tile] is None,
                                   self.bonus_tiles))
     elif self.choice_type == 'which_federation_owned':
